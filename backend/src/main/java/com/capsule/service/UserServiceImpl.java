@@ -2,6 +2,7 @@ package com.capsule.service;
 
 import com.capsule.model.User;
 import com.capsule.repository.UserRepository;
+import com.capsule.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,14 +12,19 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
     @Override
     public User registerUser(User user) {
-        // Hash the password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
@@ -26,11 +32,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean authenticateUser(String username, String password) {
         Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            // Check if password matches hashed password
-            return passwordEncoder.matches(password, user.getPassword());
+        return userOpt.isPresent() &&
+                passwordEncoder.matches(password, userOpt.get().getPassword());
+    }
+
+    @Override
+    public String loginUser(String username, String password) {
+        if (authenticateUser(username, password)) {
+            return jwtUtil.generateToken(username);
         }
-        return false;
+        throw new RuntimeException("Invalid credentials");
     }
 }

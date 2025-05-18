@@ -1,57 +1,57 @@
 package com.capsule.security;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String SECRET_KEY = "your_secret_key"; // Use the same key you used in JwtUtil
+    private final JwtUtil jwtUtil;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
 
+        String header = request.getHeader("Authorization");
+        String token = null;
         String username = null;
-        String jwt = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7); // Remove "Bearer " prefix
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
             try {
-                Claims claims = Jwts.parser()
-                        .setSigningKey(SECRET_KEY)
-                        .parseClaimsJws(jwt)
-                        .getBody();
-                username = claims.getSubject();
+                if (jwtUtil.validateToken(token)) {
+                    username = jwtUtil.extractUsername(token);
+                }
             } catch (Exception e) {
-                // Token invalid or expired; optionally log the error
+                // invalid token, log or handle as needed
             }
         }
 
-        // If username found and no authentication in context yet, set it
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Here we create a basic authentication token (no authorities/roles for now)
+            // Here, we set a simple authentication object.
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(username, null, null);
+                    new UsernamePasswordAuthenticationToken(username, null,
+                            Collections.singletonList(new SimpleGrantedAuthority("USER")));
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
-        // Continue with filter chain
         filterChain.doFilter(request, response);
     }
 }
