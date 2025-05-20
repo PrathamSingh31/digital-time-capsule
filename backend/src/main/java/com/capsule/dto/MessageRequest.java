@@ -6,7 +6,6 @@ public class MessageRequest {
     private String message;
     private LocalDate unlockDate;
 
-    // Getters and setters
     public String getMessage() {
         return message;
     }
