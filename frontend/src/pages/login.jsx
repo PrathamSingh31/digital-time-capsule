@@ -1,30 +1,55 @@
-// src/pages/Login.jsx
-import { useState } from 'react';
-import api from '../services/api';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '../api/axios';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/auth/login', { username, password });
-      localStorage.setItem('jwt', res.data.token);
-      navigate('/dashboard');
-    } catch (err) {
-      alert('Login failed');
+      const response = await axios.post('/login', formData);
+      localStorage.setItem('token', response.data.token);
+      navigate('/'); // redirect to dashboard
+    } catch (error) {
+      alert('Invalid username or password');
     }
   };
 
   return (
-    <form onSubmit={handleLogin}>
+    <div style={{ maxWidth: 400, margin: '50px auto' }}>
       <h2>Login</h2>
-      <input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button type="submit">Login</button>
-    </form>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+        />
+        <button type="submit" style={{ width: '100%' }}>
+          Login
+        </button>
+      </form>
+    </div>
   );
 }

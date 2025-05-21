@@ -1,0 +1,2 @@
+# Inside .gitattributes (create if it doesn't exist)
+* text=auto

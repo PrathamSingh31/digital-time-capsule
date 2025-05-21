@@ -1,12 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from '../api/axios';
+import { useNavigate } from 'react-router-dom';
 
-const Register = () => {
+export default function Register() {
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('/register', formData);
+      alert('Registration successful. Please log in.');
+      navigate('/login');
+    } catch (error) {
+      alert('Registration failed');
+    }
+  };
+
   return (
-    <div>
-      <h1>Register Page</h1>
-      {/* Your register form will go here */}
+    <div style={{ maxWidth: 400, margin: '50px auto' }}>
+      <h2>Register</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={formData.username}
+          onChange={handleChange}
+          required
+          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+        />
+        <button type="submit" style={{ width: '100%' }}>
+          Register
+        </button>
+      </form>
     </div>
   );
-};
-
-export default Register;
+}
