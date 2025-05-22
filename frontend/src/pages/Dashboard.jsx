@@ -1,69 +1,62 @@
-import React, { useEffect, useState } from 'react';
-import axios from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import axios from "axios";
 
 export default function Dashboard() {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
+  const [unlockDate, setUnlockDate] = useState("");
+  const [status, setStatus] = useState("");
 
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('/user/messages', {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/user/create",
+        {
+          message,
+          unlockDate,
+        },
+        {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        const today = new Date();
-        const filtered = response.data.filter(msg => new Date(msg.unlockDate) <= today);
-        setMessages(filtered);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load messages');
-        setLoading(false);
-      }
-    };
-
-    fetchMessages();
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  const handleCreate = () => {
-    navigate('/create');
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setStatus("✅ Message saved successfully!");
+      setMessage("");
+      setUnlockDate("");
+    } catch (error) {
+      console.error("Error submitting message:", error);
+      setStatus("❌ Failed to save message.");
+    }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: '40px auto' }}>
-      <h2>Welcome to Your Dashboard</h2>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <button onClick={handleCreate}>+ Create New Message</button>
-        <button onClick={handleLogout}>Logout</button>
-      </div>
-
-      {loading ? (
-        <p>Loading messages...</p>
-      ) : error ? (
-        <p style={{ color: 'red' }}>{error}</p>
-      ) : messages.length === 0 ? (
-        <p>No unlocked messages yet.</p>
-      ) : (
-        <div>
-          {messages.map((msg, index) => (
-            <div key={index} style={{ border: '1px solid #ccc', padding: 15, marginBottom: 10 }}>
-              <p><strong>Message:</strong> {msg.message}</p>
-              <p><strong>Unlock Date:</strong> {new Date(msg.unlockDate).toLocaleDateString()}</p>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="p-4 max-w-xl mx-auto mt-10 bg-white shadow-lg rounded-lg">
+      <h2 className="text-2xl font-bold mb-4 text-center">Create Time Capsule</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <textarea
+          placeholder="Enter your message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          required
+          className="w-full p-2 border rounded"
+        />
+        <input
+          type="date"
+          value={unlockDate}
+          onChange={(e) => setUnlockDate(e.target.value)}
+          required
+          className="w-full p-2 border rounded"
+        />
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        >
+          Save Message
+        </button>
+      </form>
+      {status && <p className="mt-4 text-center text-sm text-gray-700">{status}</p>}
     </div>
   );
 }
