@@ -1,151 +1,108 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
 
-const Dashboard = () => {
-  const [message, setMessage] = useState("");
-  const [unlockDate, setUnlockDate] = useState("");
+function Dashboard() {
   const [messages, setMessages] = useState([]);
-  const [username, setUsername] = useState("");
-  const navigate = useNavigate();
+  const [messageText, setMessageText] = useState('');
+  const [unlockDate, setUnlockDate] = useState('');
 
-  const token = localStorage.getItem("token");
-
+  // Fetch all messages on component mount
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    axios
-      .get("http://localhost:8080/api/user/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setUsername(res.data.username);
-      })
-      .catch((err) => {
-        console.error("Error fetching profile:", err);
-        navigate("/login");
-      });
-
-    axios
-      .get("http://localhost:8080/api/user/messages", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setMessages(res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching messages:", err);
-      });
-  }, [token, navigate]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      await axios.post(
-        "http://localhost:8080/api/user/create",
-        {
-          message,
-          unlockDate,
-        },
-        {
+    const fetchMessages = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/user/messages', {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
-        }
-      );
+        });
 
-      alert("Message successfully saved!");
-      setMessage("");
-      setUnlockDate("");
+        if (!response.ok) throw new Error('Failed to fetch messages');
 
-      // Refresh messages
-      const res = await axios.get("http://localhost:8080/api/user/messages", {
+        const data = await response.json();
+        setMessages(data);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+
+    fetchMessages();
+  }, []);
+
+  // Add new message handler
+  const handleAddMessage = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/user/create', {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          message: messageText,
+          unlockDate,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save message');
+
+      alert('Message was successfully saved');
+
+      // Clear inputs
+      setMessageText('');
+      setUnlockDate('');
+
+      // Refresh messages list
+      const updatedMessagesResponse = await fetch('http://localhost:8080/api/user/messages', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-      setMessages(res.data);
-    } catch (error) {
-      alert("Failed to save message");
-      console.error("Save error:", error);
-    }
-  };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+      if (!updatedMessagesResponse.ok) throw new Error('Failed to fetch messages');
+      const updatedMessages = await updatedMessagesResponse.json();
+      setMessages(updatedMessages);
+
+    } catch (error) {
+      alert('Failed to save message');
+      console.error(error);
+    }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Welcome, {username}!</h2>
+    <div className="dashboard">
+      <h2>Dashboard</h2>
 
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="mb-2">
-          <label className="block font-medium">Your Message</label>
-          <textarea
-            className="w-full p-2 border rounded"
-            rows="4"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block font-medium">Unlock Date</label>
-          <input
-            type="date"
-            className="w-full p-2 border rounded"
-            value={unlockDate}
-            onChange={(e) => setUnlockDate(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Save Message
-        </button>
-      </form>
+      <div className="add-message">
+        <h3>Add New Message</h3>
+        <textarea
+          placeholder="Enter your message"
+          value={messageText}
+          onChange={(e) => setMessageText(e.target.value)}
+        />
+        <input
+          type="date"
+          value={unlockDate}
+          onChange={(e) => setUnlockDate(e.target.value)}
+        />
+        <button onClick={handleAddMessage}>Save Message</button>
+      </div>
 
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold mb-2">Your Messages</h3>
-        {messages.length > 0 ? (
-          <ul className="space-y-2">
-            {messages.map((msg, index) => (
-              <li
-                key={index}
-                className="border p-3 rounded shadow-sm bg-gray-50"
-              >
-                <p className="text-gray-800">{msg.message}</p>
-                <small className="text-gray-500">
-                  Unlocks on: {msg.unlockDate}
-                </small>
+      <div className="messages-list">
+        <h3>Your Saved Messages</h3>
+        {messages.length === 0 ? (
+          <p>No messages found.</p>
+        ) : (
+          <ul>
+            {messages.map((msg) => (
+              <li key={msg.id}>
+                <p>{msg.message}</p>
+                <small>Unlock Date: {msg.unlockDate}</small>
               </li>
             ))}
           </ul>
-        ) : (
-          <p>No messages yet.</p>
         )}
       </div>
-
-      <button
-        onClick={handleLogout}
-        className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-      >
-        Logout
-      </button>
     </div>
   );
-};
+}
 
 export default Dashboard;

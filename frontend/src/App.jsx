@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateMessage from "./pages/CreateMessage";
 import PrivateRoute from "./components/PrivateRoute";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
+          <Route path="/profile" element={<Profile />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create" element={<CreateMessage />} />
         </Route>
