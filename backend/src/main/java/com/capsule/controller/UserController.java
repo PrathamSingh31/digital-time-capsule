@@ -49,19 +49,24 @@ public class UserController {
 
     // --------- PROFILE ROUTE ---------
 
-    @GetMapping("/user/profile")
-    public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        User user = userRepository.findByUsername(username).orElse(null);
 
-        if (user == null) {
-            return ResponseEntity.badRequest().body("User not found");
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
 
-        return ResponseEntity.ok().body(
-                new ProfileResponse(user.getUsername(), user.getEmail())
-        );
+        User user = userService.findByUsername(userDetails.getUsername());
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "email", user.getEmail()
+        ));
     }
+
 
     // DTO for profile response
     static class ProfileResponse {
