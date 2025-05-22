@@ -20,9 +20,9 @@ public class UserMessageController {
     }
 
     @GetMapping("/messages")
-    public ResponseEntity<List<UserMessage>> getAllMessages(@AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        List<UserMessage> messages = userMessageService.getMessagesByUsername(username);
+    public ResponseEntity<List<UserMessage>> getUserMessages(@AuthenticationPrincipal UserDetails userDetails) {
+        List<UserMessage> messages = userMessageService.getMessagesByUsername(userDetails.getUsername());
         return ResponseEntity.ok(messages);
     }
+
 }
