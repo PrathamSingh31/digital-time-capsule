@@ -1,24 +1,39 @@
 package com.capsule.dto;
 
-import java.time.LocalDate;
-
 public class MessageRequest {
-    private String message;
-    private LocalDate unlockDate;
+    private String content;
+    private String title;
+    private String deliveryDate;
 
-    public String getMessage() {
-        return message;
+    public MessageRequest() {}
+
+    public MessageRequest(String content, String title, String deliveryDate) {
+        this.content = content;
+        this.title = title;
+        this.deliveryDate = deliveryDate;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getContent() {
+        return content;
     }
 
-    public LocalDate getUnlockDate() {
-        return unlockDate;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public void setUnlockDate(LocalDate unlockDate) {
-        this.unlockDate = unlockDate;
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public void setDeliveryDate(String deliveryDate) {
+        this.deliveryDate = deliveryDate;
     }
 }

@@ -1,7 +1,9 @@
 package com.capsule.security;
 
+import com.capsule.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -10,38 +12,41 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "your_very_long_secret_key_must_be_at_least_256_bits_long_1234567890";
-    private static final long EXPIRATION_TIME = 86400000; // 1 day
+    private final String jwtSecret = "your_jwt_secret_key_which_should_be_very_long";
+    private final long jwtExpirationInMs = 86400000;
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+    private final Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
 
-    public String generateToken(String username) {
+    public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractUsername(String token) {
-        return getClaims(token).getSubject();
-    }
-
-    public boolean validateToken(String token) {
-        try {
-            Claims claims = getClaims(token);
-            return !claims.getExpiration().before(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-
-    private Claims getClaims(String token) {
+    public String getUsernameFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody();
+                .getBody()
+                .getSubject();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = getUsernameFromToken(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+        return expiration.before(new Date());
     }
 }

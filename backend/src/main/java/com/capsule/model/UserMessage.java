@@ -2,21 +2,42 @@ package com.capsule.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
+@Table(name = "user_messages")
 public class UserMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    private String message;
+    @Column(nullable = false)
+    private String content;
 
-    private LocalDate unlockDate;
+    @Column(nullable = false)
+    private String title;
 
-    // Getters and Setters
+    private LocalDate deliveryDate;
+
+    private LocalDateTime createdAt;
+
+    public UserMessage() {}
+
+    public UserMessage(Long id, User user, String content, String title, LocalDate deliveryDate, LocalDateTime createdAt) {
+        this.id = id;
+        this.user = user;
+        this.content = content;
+        this.title = title;
+        this.deliveryDate = deliveryDate;
+        this.createdAt = createdAt;
+    }
 
     public Long getId() {
         return id;
@@ -26,27 +47,43 @@ public class UserMessage {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public User getUser() {
+        return user;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public String getMessage() {
-        return message;
+    public String getContent() {
+        return content;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public LocalDate getUnlockDate() {
-        return unlockDate;
+    public String getTitle() {
+        return title;
     }
 
-    public void setUnlockDate(LocalDate unlockDate) {
-        this.unlockDate = unlockDate;
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public LocalDate getDeliveryDate() {
+        return deliveryDate;
+    }
+
+    public void setDeliveryDate(LocalDate deliveryDate) {
+        this.deliveryDate = deliveryDate;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

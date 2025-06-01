@@ -1,89 +1,60 @@
 package com.capsule.controller;
 
+import com.capsule.dto.JwtResponse;
+import com.capsule.dto.LoginDTO;
+import com.capsule.dto.RegisterDTO;
 import com.capsule.model.User;
-import com.capsule.repository.UserRepository;
+import com.capsule.security.JwtUtil;
+import com.capsule.security.UserPrincipal;
 import com.capsule.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class UserController {
 
-    private final UserService userService;
-    private final UserRepository userRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    public UserController(UserService userService, UserRepository userRepository) {
-        this.userService = userService;
-        this.userRepository = userRepository;
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody RegisterDTO registerDTO) {
+        User user = userService.registerNewUser(registerDTO);
+        if (user != null) {
+            return ResponseEntity.ok("User registered successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed");
+        }
     }
 
-    // --------- AUTH ROUTES ---------
-
-    @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
-        String username = user.get("username");
-        String password = user.get("password");
-
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginDTO loginDTO) {
         try {
-            String token = userService.loginUser(username, password);
-            return ResponseEntity.ok(Map.of("token", token));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
-        }
-    }
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginDTO.getUsername(),
+                            loginDTO.getPassword()
+                    )
+            );
 
-    @PostMapping("/auth/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        try {
-            userService.registerUser(user);
-            return ResponseEntity.ok(Map.of("message", "User registered successfully"));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    // --------- PROFILE ROUTE ---------
-
-
-    @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
-        }
-
-        User user = userService.findByUsername(userDetails.getUsername());
-        if (user == null) {
-            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "username", user.getUsername(),
-                "email", user.getEmail()
-        ));
-    }
-
-
-    // DTO for profile response
-    static class ProfileResponse {
-        private final String username;
-        private final String email;
-
-        public ProfileResponse(String username, String email) {
-            this.username = username;
-            this.email = email;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getEmail() {
-            return email;
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            String token = jwtUtil.generateToken(userPrincipal);
+            return ResponseEntity.ok(new JwtResponse(token, userPrincipal.getUsername()));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
     }
 }
