@@ -1,79 +1,42 @@
 package com.capsule.service;
 
-import com.capsule.dto.MessageRequest;
 import com.capsule.model.User;
 import com.capsule.model.UserMessage;
+import com.capsule.dto.MessageRequest;
 import com.capsule.repository.UserMessageRepository;
 import com.capsule.repository.UserRepository;
+import com.capsule.service.UserMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserMessageServiceImpl implements UserMessageService {
 
-    private final UserMessageRepository messageRepository;
-    private final UserRepository userRepository;
+    @Autowired
+    private UserMessageRepository userMessageRepository;
 
     @Autowired
-    public UserMessageServiceImpl(UserMessageRepository messageRepository, UserRepository userRepository) {
-        this.messageRepository = messageRepository;
-        this.userRepository = userRepository;
-    }
+    private UserRepository userRepository;
 
     @Override
     public UserMessage createMessage(Long userId, MessageRequest request) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            throw new RuntimeException("User not found with id: " + userId);
-        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = userOpt.get();
         UserMessage message = new UserMessage();
-        message.setUser(user);
-
-        // Ensure required fields are set to avoid not-null errors
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw new RuntimeException("Content must not be null or empty.");
-        }
-
-        message.setContent(request.getContent());
+        message.setUser(user);  // sets both user and userId
         message.setTitle(request.getTitle());
-
-        if (request.getDeliveryDate() != null && !request.getDeliveryDate().isEmpty()) {
-            message.setDeliveryDate(LocalDate.parse(request.getDeliveryDate()));
-        }
-
+        message.setContent(request.getContent());
+        message.setDeliveryDate(request.getDeliveryDate());
         message.setCreatedAt(LocalDateTime.now());
-        return messageRepository.save(message);
+
+        return userMessageRepository.save(message);
     }
 
     @Override
-    public List<UserMessage> getMessagesByUser(Long userId, Integer year, String sort) {
-        List<UserMessage> messages;
-
-        if (year != null && sort != null) {
-            if (sort.equalsIgnoreCase("asc")) {
-                messages = messageRepository.findByUserIdAndYearOrderByDeliveryDateAsc(userId, year);
-            } else {
-                messages = messageRepository.findByUserIdAndYearOrderByDeliveryDateDesc(userId, year);
-            }
-        } else if (year != null) {
-            messages = messageRepository.findByUserIdAndYear(userId, year);
-        } else if (sort != null) {
-            if (sort.equalsIgnoreCase("asc")) {
-                messages = messageRepository.findByUserIdOrderByDeliveryDateAsc(userId);
-            } else {
-                messages = messageRepository.findByUserIdOrderByDeliveryDateDesc(userId);
-            }
-        } else {
-            messages = messageRepository.findByUserId(userId);
-        }
-
-        return messages;
+    public List<UserMessage> getMessagesByUserId(Long userId) {
+        return userMessageRepository.findByUserId(userId);
     }
 }

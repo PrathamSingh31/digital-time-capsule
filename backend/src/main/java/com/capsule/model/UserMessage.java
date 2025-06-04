@@ -1,9 +1,8 @@
 package com.capsule.model;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "user_messages")
@@ -13,30 +12,31 @@ public class UserMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonBackReference
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JsonIgnore
     private User user;
 
-    @Column(nullable = false)
-    private String content;
-
-    @Column(nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "delivery_date", nullable = false)
     private LocalDate deliveryDate;
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     public UserMessage() {}
 
-    public UserMessage(Long id, User user, String content, String title, LocalDate deliveryDate, LocalDateTime createdAt) {
-        this.id = id;
-        this.user = user;
-        this.content = content;
-        this.title = title;
-        this.deliveryDate = deliveryDate;
-        this.createdAt = createdAt;
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -47,20 +47,23 @@ public class UserMessage {
         this.id = id;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
+        if (user != null) {
+            this.userId = user.getId();
+        }
     }
 
     public String getTitle() {
@@ -69,6 +72,14 @@ public class UserMessage {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public LocalDate getDeliveryDate() {

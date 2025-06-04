@@ -1,16 +1,21 @@
 package com.capsule.dto;
 
+import java.time.LocalDate;
+
 public class MessageRequest {
-    private String content;
+
     private String title;
-    private String deliveryDate;
+    private String content;
+    private LocalDate deliveryDate;
 
     public MessageRequest() {}
 
-    public MessageRequest(String content, String title, String deliveryDate) {
-        this.content = content;
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
         this.title = title;
-        this.deliveryDate = deliveryDate;
     }
 
     public String getContent() {
@@ -21,19 +26,11 @@ public class MessageRequest {
         this.content = content;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDeliveryDate() {
+    public LocalDate getDeliveryDate() {
         return deliveryDate;
     }
 
-    public void setDeliveryDate(String deliveryDate) {
+    public void setDeliveryDate(LocalDate deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
 }

@@ -11,6 +11,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/capsule")
+@CrossOrigin(origins = "http://localhost:5174")
+
 public class CapsuleController {
 
     private final CapsuleService capsuleService;

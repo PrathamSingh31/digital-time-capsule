@@ -1,5 +1,4 @@
 package com.capsule.service;
-import java.util.Optional;
 
 import com.capsule.dto.RegisterDTO;
 import com.capsule.model.User;
@@ -7,6 +6,8 @@ import com.capsule.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -25,9 +26,10 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         return userRepository.save(user);
     }
+
     @Override
     public User getUserById(Long id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        return userOptional.orElse(null);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
     }
 }
