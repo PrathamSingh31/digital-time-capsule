@@ -1,53 +1,34 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import axiosPrivate from '../api/axiosPrivate';
 
-const Profile = () => {
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+export default function Profile() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    const fetchProfile = async () => {
+      try {
+        const response = await axiosPrivate.get('/user/profile');
+        setProfile(response.data);
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        setLoading(false); // ✅ Important!
+      }
+    };
 
-    axios
-      .get("http://localhost:8080/api/user/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => {
-        setUser(res.data);
-      })
-      .catch((err) => {
-        console.error("Profile fetch failed:", err);
-        navigate("/login");
-      });
-  }, [token, navigate]);
+    fetchProfile();
+  }, []);
 
-  if (!user) return <p>Loading profile...</p>;
+  if (loading) return <p>Loading profile...</p>;
+
+  if (!profile) return <p>Failed to load profile</p>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">User Profile</h2>
-      <div className="bg-white shadow-md p-4 rounded-lg">
-        <p>
-          <strong>Username:</strong> {user.username}
-        </p>
-        <p>
-          <strong>Email:</strong> {user.email}
-        </p>
-        {user.createdAt && (
-          <p>
-            <strong>Joined:</strong> {new Date(user.createdAt).toDateString()}
-          </p>
-        )}
-      </div>
+    <div>
+      <h2>User Profile</h2>
+      <p><strong>Username:</strong> {profile.username}</p>
+      <p><strong>Email:</strong> {profile.email}</p>
     </div>
   );
-};
-
-export default Profile;
+}

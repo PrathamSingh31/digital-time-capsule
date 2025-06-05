@@ -1,37 +1,87 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 
-export default function CreateMessage() {
-  const [message, setMessage] = useState("");
+const CreateMessage = () => {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // TODO: Replace with actual API call to save the message
-    console.log("Message submitted:", message);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/user/messages",
+        {
+          title,
+          content,
+          deliveryDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // Clear the form
-    setMessage("");
+      setSuccessMessage("Message saved successfully!");
+      setTitle("");
+      setContent("");
+      setDeliveryDate("");
+      console.log("Message saved:", response.data);
+    } catch (error) {
+      console.error("Error saving message:", error);
+      setErrorMessage("Failed to save message. Please try again.");
+    }
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-      <h1 className="text-xl font-bold">Create a New Message</h1>
+    <div className="max-w-md mx-auto mt-10 p-4 border rounded shadow">
+      <h2 className="text-xl font-bold mb-4">Create Time Capsule Message</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-2 border rounded"
+          required
+        />
         <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Write your message here..."
-          className="w-full p-2 border border-gray-300 rounded-md"
-          rows={6}
+          placeholder="Message Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="w-full p-2 border rounded"
+          rows={4}
+          required
+        />
+        <input
+          type="date"
+          value={deliveryDate}
+          onChange={(e) => setDeliveryDate(e.target.value)}
+          className="w-full p-2 border rounded"
           required
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
         >
-          Submit
+          Save Message
         </button>
       </form>
+
+      {successMessage && (
+        <p className="text-green-600 mt-4">{successMessage}</p>
+      )}
+      {errorMessage && (
+        <p className="text-red-600 mt-4">{errorMessage}</p>
+      )}
     </div>
   );
-}
+};
+
+export default CreateMessage;

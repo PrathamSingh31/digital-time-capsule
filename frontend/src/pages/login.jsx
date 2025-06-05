@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import axiosAuth from '../api/axiosAuth';
 import { useNavigate } from 'react-router-dom';
-import axios from '../api/axios';
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -9,18 +9,22 @@ export default function Login() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/login', formData);
-      localStorage.setItem('token', response.data.token);
-      navigate('/'); // redirect to dashboard
+      const response = await axiosAuth.post('/login', formData);
+      const { token, username } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', username);
+      alert('Login successful!');
+      navigate('/dashboard');
     } catch (error) {
-      alert('Invalid username or password');
+      console.error('Login error:', error);
+      alert('Login failed. Please check your credentials.');
     }
   };
 

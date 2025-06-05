@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
-import axios from '../api/axios';
+import axiosAuth from '../api/axiosAuth';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/register', formData);
+      await axiosAuth.post('/register', formData);
       alert('Registration successful. Please log in.');
       navigate('/login');
     } catch (error) {
-      alert('Registration failed');
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(`Registration failed: ${error.response.data.message}`);
+      } else {
+        console.error('Registration error:', error);
+        alert('Registration failed. Please try again later.');
+      }
     }
   };
 
@@ -42,6 +47,15 @@ export default function Register() {
           name="password"
           placeholder="Password"
           value={formData.password}
+          onChange={handleChange}
+          required
+          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
           onChange={handleChange}
           required
           style={{ display: 'block', width: '100%', marginBottom: '10px' }}

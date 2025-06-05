@@ -1,108 +1,117 @@
 import React, { useEffect, useState } from 'react';
+import axiosPrivate from '../api/axiosPrivate';
 
-function Dashboard() {
+export default function Dashboard() {
   const [messages, setMessages] = useState([]);
-  const [messageText, setMessageText] = useState('');
-  const [unlockDate, setUnlockDate] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedContent, setEditedContent] = useState('');
+  const [editedDate, setEditedDate] = useState('');
 
-  // Fetch all messages on component mount
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/user/messages', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch messages');
-
-        const data = await response.json();
-        setMessages(data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
-
-    fetchMessages();
-  }, []);
-
-  // Add new message handler
-  const handleAddMessage = async () => {
+  const fetchMessages = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/user/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          message: messageText,
-          unlockDate,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save message');
-
-      alert('Message was successfully saved');
-
-      // Clear inputs
-      setMessageText('');
-      setUnlockDate('');
-
-      // Refresh messages list
-      const updatedMessagesResponse = await fetch('http://localhost:8080/api/user/messages', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (!updatedMessagesResponse.ok) throw new Error('Failed to fetch messages');
-      const updatedMessages = await updatedMessagesResponse.json();
-      setMessages(updatedMessages);
-
+      const response = await axiosPrivate.get('/user/messages');
+      setMessages(response.data);
     } catch (error) {
-      alert('Failed to save message');
-      console.error(error);
+      console.error('Error fetching messages:', error);
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await axiosPrivate.delete(`/user/messages/${id}`);
+      setMessages(messages.filter((msg) => msg.id !== id));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const handleEdit = (id, title, content, deliveryDate) => {
+    setEditingMessageId(id);
+    setEditedTitle(title);
+    setEditedContent(content);
+    setEditedDate(deliveryDate);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await axiosPrivate.put(`/user/messages/${editingMessageId}`, {
+        title: editedTitle,
+        content: editedContent,
+        deliveryDate: editedDate,
+      });
+      setEditingMessageId(null);
+      setEditedTitle('');
+      setEditedContent('');
+      setEditedDate('');
+      fetchMessages(); // reload after update
+    } catch (error) {
+      console.error('Error updating message:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
   return (
-    <div className="dashboard">
-      <h2>Dashboard</h2>
-
-      <div className="add-message">
-        <h3>Add New Message</h3>
-        <textarea
-          placeholder="Enter your message"
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-        />
-        <input
-          type="date"
-          value={unlockDate}
-          onChange={(e) => setUnlockDate(e.target.value)}
-        />
-        <button onClick={handleAddMessage}>Save Message</button>
-      </div>
-
-      <div className="messages-list">
-        <h3>Your Saved Messages</h3>
-        {messages.length === 0 ? (
-          <p>No messages found.</p>
-        ) : (
-          <ul>
-            {messages.map((msg) => (
-              <li key={msg.id}>
-                <p>{msg.message}</p>
-                <small>Unlock Date: {msg.unlockDate}</small>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Your Messages</h2>
+      <ul className="space-y-4">
+        {messages.map((msg) => (
+          <li key={msg.id} className="bg-gray-100 p-4 rounded shadow">
+            {editingMessageId === msg.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  className="w-full p-2 border rounded mb-2"
+                  placeholder="Title"
+                />
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full p-2 border rounded mb-2"
+                  placeholder="Content"
+                />
+                <input
+                  type="date"
+                  value={editedDate}
+                  onChange={(e) => setEditedDate(e.target.value)}
+                  className="w-full p-2 border rounded mb-2"
+                />
+                <button
+                  onClick={handleUpdate}
+                  className="px-4 py-1 bg-blue-600 text-white rounded"
+                >
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold">{msg.title}</h3>
+                <p>{msg.content}</p>
+                <p className="text-sm text-gray-600">Deliver on: {msg.deliveryDate}</p>
+                <div className="mt-2 space-x-2">
+                  <button
+                    onClick={() => handleEdit(msg.id, msg.title, msg.content, msg.deliveryDate)}
+                    className="px-3 py-1 bg-yellow-500 text-white rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(msg.id)}
+                    className="px-3 py-1 bg-red-600 text-white rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-export default Dashboard;
