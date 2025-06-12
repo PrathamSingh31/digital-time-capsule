@@ -1,39 +1,28 @@
 package com.capsule.model;
 
-import jakarta.persistence.*;
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import jakarta.persistence.*;
+import java.util.List;
+
 @Entity
-@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
     private String username;
-
-    @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false, unique = true)
     private String email;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserMessage> userMessages;
 
-    public User() {}
+    // constructors, getters, setters below (without Lombok)
 
-    public User(Long id, String username, String password, String email, List<UserMessage> userMessages) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-        this.userMessages = userMessages;
-    }
+    public User() {}
 
     public Long getId() {
         return id;

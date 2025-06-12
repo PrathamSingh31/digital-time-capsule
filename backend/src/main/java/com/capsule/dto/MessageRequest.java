@@ -1,14 +1,23 @@
 package com.capsule.dto;
 
-import java.time.LocalDate;
-
+/**
+ * DTO representing a message input from the client.
+ * `deliveryDate` must be in the format yyyy-MM-dd.
+ */
 public class MessageRequest {
 
     private String title;
     private String content;
-    private LocalDate deliveryDate;
+    private String deliveryDate; // Format: yyyy-MM-dd
 
-    public MessageRequest() {}
+    public MessageRequest() {
+    }
+
+    public MessageRequest(String title, String content, String deliveryDate) {
+        this.title = title;
+        this.content = content;
+        this.deliveryDate = deliveryDate;
+    }
 
     public String getTitle() {
         return title;
@@ -26,11 +35,20 @@ public class MessageRequest {
         this.content = content;
     }
 
-    public LocalDate getDeliveryDate() {
+    public String getDeliveryDate() {
         return deliveryDate;
     }
 
-    public void setDeliveryDate(LocalDate deliveryDate) {
+    public void setDeliveryDate(String deliveryDate) {
         this.deliveryDate = deliveryDate;
+    }
+
+    @Override
+    public String toString() {
+        return "MessageRequest{" +
+                "title='" + title + '\'' +
+                ", content='" + content + '\'' +
+                ", deliveryDate='" + deliveryDate + '\'' +
+                '}';
     }
 }

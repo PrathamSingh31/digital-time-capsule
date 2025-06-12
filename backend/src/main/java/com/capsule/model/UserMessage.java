@@ -1,43 +1,38 @@
 package com.capsule.model;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_messages")
+@Table(name = "user_message")
 public class UserMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    @JsonIgnore
-    private User user;
-
-    @Column(name = "title", nullable = false)
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "delivery_date", nullable = false)
-    private LocalDate deliveryDate;
+    @Column(name = "message_date_time", nullable = false)
+    private LocalDateTime messageDateTime;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Column(nullable = false)
+    private int year;  // Required for filtering and sorting
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
+    private User user;
 
     public UserMessage() {}
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -45,25 +40,6 @@ public class UserMessage {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-        if (user != null) {
-            this.userId = user.getId();
-        }
     }
 
     public String getTitle() {
@@ -82,19 +58,27 @@ public class UserMessage {
         this.content = content;
     }
 
-    public LocalDate getDeliveryDate() {
-        return deliveryDate;
+    public LocalDateTime getMessageDateTime() {
+        return messageDateTime;
     }
 
-    public void setDeliveryDate(LocalDate deliveryDate) {
-        this.deliveryDate = deliveryDate;
+    public void setMessageDateTime(LocalDateTime messageDateTime) {
+        this.messageDateTime = messageDateTime;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public int getYear() {
+        return year;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
