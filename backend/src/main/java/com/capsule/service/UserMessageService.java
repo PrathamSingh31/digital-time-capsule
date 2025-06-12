@@ -9,13 +9,18 @@ import java.util.List;
 
 public interface UserMessageService {
     UserMessage createMessage(Long userId, MessageRequest request);
+
     List<UserMessage> getMessagesByUserId(Long userId);
+
     UserMessage updateMessage(Long messageId, Long userId, MessageRequest request);
+
     void deleteMessage(Long messageId, Long userId);
+
     List<UserMessage> getMessagesByUserUsername(String username);
 
-    // ✅ Add these two methods if using both import types
+    void importMessages(Long userId, MultipartFile file, String fileType) throws IOException;
+
     void importMessages(Long userId, List<MessageRequest> messages);
 
-    void importMessages(Long userId, MultipartFile file, String fileType) throws IOException;
+    List<UserMessage> getFilteredMessages(Long userId, Integer year, String sort);
 }

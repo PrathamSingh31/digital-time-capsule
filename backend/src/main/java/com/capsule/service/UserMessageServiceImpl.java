@@ -7,11 +7,15 @@ import com.capsule.repository.UserMessageRepository;
 import com.capsule.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserMessageServiceImpl implements UserMessageService {
@@ -25,7 +29,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public UserMessage createMessage(Long userId, MessageRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         UserMessage userMessage = new UserMessage();
         userMessage.setTitle(request.getTitle());
@@ -54,10 +58,10 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public UserMessage updateMessage(Long messageId, Long userId, MessageRequest request) {
         UserMessage existingMessage = userMessageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found with ID: " + messageId));
+                .orElseThrow(() -> new RuntimeException("Message not found"));
 
         if (!existingMessage.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to update message.");
+            throw new RuntimeException("Unauthorized");
         }
 
         existingMessage.setTitle(request.getTitle());
@@ -76,10 +80,10 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public void deleteMessage(Long messageId, Long userId) {
         UserMessage existingMessage = userMessageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found with ID: " + messageId));
+                .orElseThrow(() -> new RuntimeException("Message not found"));
 
         if (!existingMessage.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to delete message.");
+            throw new RuntimeException("Unauthorized");
         }
 
         userMessageRepository.delete(existingMessage);
@@ -90,13 +94,15 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.findByUserUsername(username);
     }
 
-    /**
-     * Imports a list of messages (JSON array from frontend) for a given user.
-     */
+    @Override
+    public void importMessages(Long userId, MultipartFile file, String fileType) throws IOException {
+        throw new UnsupportedOperationException("File-based import not implemented yet.");
+    }
+
     @Override
     public void importMessages(Long userId, List<MessageRequest> messages) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         for (MessageRequest request : messages) {
             UserMessage message = new UserMessage();
@@ -119,11 +125,22 @@ public class UserMessageServiceImpl implements UserMessageService {
         }
     }
 
-    /**
-     * File import not supported yet.
-     */
     @Override
-    public void importMessages(Long userId, org.springframework.web.multipart.MultipartFile file, String fileType) {
-        throw new UnsupportedOperationException("File-based import not implemented yet.");
+    public List<UserMessage> getFilteredMessages(Long userId, Integer year, String sort) {
+        List<UserMessage> messages = userMessageRepository.findByUserId(userId);
+
+        if (year != null) {
+            messages = messages.stream()
+                    .filter(msg -> msg.getYear() == year)
+                    .collect(Collectors.toList());
+        }
+
+        if ("asc".equalsIgnoreCase(sort)) {
+            messages.sort(Comparator.comparing(UserMessage::getMessageDateTime));
+        } else if ("desc".equalsIgnoreCase(sort)) {
+            messages.sort(Comparator.comparing(UserMessage::getMessageDateTime).reversed());
+        }
+
+        return messages;
     }
 }

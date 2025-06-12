@@ -27,6 +27,7 @@ public class UserMessageController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    // ✅ Create Message
     @PostMapping
     public ResponseEntity<UserMessage> createMessage(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                      @RequestBody MessageRequest request) {
@@ -35,6 +36,7 @@ public class UserMessageController {
         return ResponseEntity.ok(message);
     }
 
+    // ✅ Get All Messages for Logged-in User
     @GetMapping
     public ResponseEntity<List<UserMessage>> getMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getId();
@@ -42,6 +44,18 @@ public class UserMessageController {
         return ResponseEntity.ok(messages);
     }
 
+    // ✅ Filter & Sort Messages by Year
+    @GetMapping("/filter")
+    public ResponseEntity<List<UserMessage>> filterMessages(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "asc") String sort) {
+        Long userId = userPrincipal.getId();
+        List<UserMessage> filtered = userMessageService.getFilteredMessages(userId, year, sort);
+        return ResponseEntity.ok(filtered);
+    }
+
+    // ✅ Update Message
     @PutMapping("/{id}")
     public ResponseEntity<UserMessage> updateMessage(@PathVariable Long id,
                                                      @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -50,6 +64,7 @@ public class UserMessageController {
         return ResponseEntity.ok(updated);
     }
 
+    // ✅ Delete Message
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id,
                                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -57,6 +72,7 @@ public class UserMessageController {
         return ResponseEntity.ok("Message deleted successfully");
     }
 
+    // ✅ Import Messages from JSON list
     @PostMapping("/import")
     public ResponseEntity<?> importMessages(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                             @RequestBody List<MessageRequest> messages) {
@@ -69,6 +85,7 @@ public class UserMessageController {
         }
     }
 
+    // ✅ Export Messages as JSON File
     @GetMapping("/export")
     public ResponseEntity<Resource> exportMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         try {
