@@ -143,4 +143,14 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         return messages;
     }
+
+    @Override
+    public List<UserMessage> getScheduledMessages(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        LocalDateTime now = LocalDateTime.now();
+        return userMessageRepository.findByUserAndMessageDateTimeAfter(user, now);
+    }
+
 }

@@ -23,4 +23,7 @@ public interface UserMessageService {
     void importMessages(Long userId, List<MessageRequest> messages);
 
     List<UserMessage> getFilteredMessages(Long userId, Integer year, String sort);
+
+    List<UserMessage> getScheduledMessages(Long userId);
+
 }

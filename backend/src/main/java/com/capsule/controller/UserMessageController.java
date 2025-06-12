@@ -85,6 +85,14 @@ public class UserMessageController {
         }
     }
 
+    @GetMapping("/scheduled")
+    public ResponseEntity<List<UserMessage>> getScheduledMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        Long userId = userPrincipal.getId();
+        List<UserMessage> scheduled = userMessageService.getScheduledMessages(userId);
+        return ResponseEntity.ok(scheduled);
+    }
+
+
     // ✅ Export Messages as JSON File
     @GetMapping("/export")
     public ResponseEntity<Resource> exportMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
