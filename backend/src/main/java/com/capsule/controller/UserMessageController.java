@@ -25,9 +25,8 @@ public class UserMessageController {
     private UserMessageService userMessageService;
 
     @Autowired
-    private ObjectMapper objectMapper; // ✅ Inject configured ObjectMapper with JavaTimeModule
+    private ObjectMapper objectMapper;
 
-    // ✅ Create Message
     @PostMapping
     public ResponseEntity<UserMessage> createMessage(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                      @RequestBody MessageRequest request) {
@@ -36,7 +35,6 @@ public class UserMessageController {
         return ResponseEntity.ok(message);
     }
 
-    // ✅ Get All Messages for Logged-in User
     @GetMapping
     public ResponseEntity<List<UserMessage>> getMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getId();
@@ -44,7 +42,6 @@ public class UserMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    // ✅ Update Message
     @PutMapping("/{id}")
     public ResponseEntity<UserMessage> updateMessage(@PathVariable Long id,
                                                      @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -53,7 +50,6 @@ public class UserMessageController {
         return ResponseEntity.ok(updated);
     }
 
-    // ✅ Delete Message
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id,
                                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -61,7 +57,6 @@ public class UserMessageController {
         return ResponseEntity.ok("Message deleted successfully");
     }
 
-    // ✅ Import Messages from List of MessageRequest
     @PostMapping("/import")
     public ResponseEntity<?> importMessages(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                             @RequestBody List<MessageRequest> messages) {
@@ -74,15 +69,10 @@ public class UserMessageController {
         }
     }
 
-    // ✅ Export Messages as JSON File
     @GetMapping("/export")
     public ResponseEntity<Resource> exportMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         try {
-            System.out.println("Export requested by user: " + userPrincipal.getUsername());
             List<UserMessage> messages = userMessageService.getMessagesByUserUsername(userPrincipal.getUsername());
-            System.out.println("Found " + messages.size() + " messages.");
-
-            // ✅ Use configured ObjectMapper that supports LocalDateTime
             String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
 
             byte[] bytes = jsonString.getBytes();
@@ -98,11 +88,9 @@ public class UserMessageController {
                     .body(resource);
 
         } catch (Exception e) {
-            e.printStackTrace();  // Log error
             byte[] errorBytes = ("Error exporting messages: " + e.getMessage()).getBytes();
             ByteArrayResource errorResource = new ByteArrayResource(errorBytes);
             return ResponseEntity.internalServerError().body(errorResource);
         }
     }
-
 }

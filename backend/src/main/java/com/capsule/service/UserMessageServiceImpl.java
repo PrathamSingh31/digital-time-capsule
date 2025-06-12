@@ -7,9 +7,7 @@ import com.capsule.repository.UserMessageRepository;
 import com.capsule.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +25,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public UserMessage createMessage(Long userId, MessageRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         UserMessage userMessage = new UserMessage();
         userMessage.setTitle(request.getTitle());
@@ -45,7 +43,6 @@ public class UserMessageServiceImpl implements UserMessageService {
         }
 
         userMessage.setUser(user);
-
         return userMessageRepository.save(userMessage);
     }
 
@@ -57,10 +54,10 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public UserMessage updateMessage(Long messageId, Long userId, MessageRequest request) {
         UserMessage existingMessage = userMessageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+                .orElseThrow(() -> new RuntimeException("Message not found with ID: " + messageId));
 
         if (!existingMessage.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Unauthorized access to update message.");
         }
 
         existingMessage.setTitle(request.getTitle());
@@ -79,10 +76,10 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public void deleteMessage(Long messageId, Long userId) {
         UserMessage existingMessage = userMessageRepository.findById(messageId)
-                .orElseThrow(() -> new RuntimeException("Message not found"));
+                .orElseThrow(() -> new RuntimeException("Message not found with ID: " + messageId));
 
         if (!existingMessage.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Unauthorized access to delete message.");
         }
 
         userMessageRepository.delete(existingMessage);
@@ -93,16 +90,13 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.findByUserUsername(username);
     }
 
-    @Override
-    public void importMessages(Long userId, MultipartFile file, String fileType) throws IOException {
-        // Optional: implement this if using file upload
-        throw new UnsupportedOperationException("File-based import not implemented yet.");
-    }
-
+    /**
+     * Imports a list of messages (JSON array from frontend) for a given user.
+     */
     @Override
     public void importMessages(Long userId, List<MessageRequest> messages) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         for (MessageRequest request : messages) {
             UserMessage message = new UserMessage();
@@ -123,5 +117,13 @@ public class UserMessageServiceImpl implements UserMessageService {
             message.setUser(user);
             userMessageRepository.save(message);
         }
+    }
+
+    /**
+     * File import not supported yet.
+     */
+    @Override
+    public void importMessages(Long userId, org.springframework.web.multipart.MultipartFile file, String fileType) {
+        throw new UnsupportedOperationException("File-based import not implemented yet.");
     }
 }
