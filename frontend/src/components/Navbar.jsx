@@ -22,6 +22,8 @@ export default function Navbar() {
             <Link to="/profile" className={styles.link}>Profile</Link>
             <Link to="/import" className={styles.link}>Import</Link> {/* ✅ Import Link */}
             <Link to="/export" className={styles.link}>Export</Link>
+            <Link to="/scheduled" className={styles.link}>Scheduled</Link>
+
             <button onClick={handleLogout} className={styles.logoutBtn}>
               Logout
             </button>

@@ -1,0 +1,40 @@
+.container {
+  padding: 2rem;
+}
+
+.heading {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.empty {
+  color: #888;
+  font-size: 1.1rem;
+}
+
+.messageList {
+  list-style: none;
+  padding: 0;
+}
+
+.messageCard {
+  background-color: #f5f5f5;
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.content {
+  margin: 0.5rem 0;
+}
+
+.date {
+  color: #555;
+  font-size: 0.95rem;
+}
