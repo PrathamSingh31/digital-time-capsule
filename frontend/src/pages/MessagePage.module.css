@@ -1,0 +1,60 @@
+.container {
+  padding: 16px;
+  max-width: 700px;
+  margin: 40px auto;
+}
+
+.heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.controls {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.input,
+.select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  min-width: 140px;
+}
+
+.messageGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.messageCard {
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
+  background-color: #fff;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.content {
+  margin-bottom: 12px;
+  line-height: 1.4;
+  color: #333;
+}
+
+.date {
+  font-size: 0.85rem;
+  color: #666;
+}

@@ -1,0 +1,47 @@
+.importContainer {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+  text-align: center;
+}
+
+.importContainer input {
+  margin-bottom: 10px;
+}
+
+.importContainer button {
+  padding: 8px 16px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.importContainer p {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.sampleBlock {
+  margin-top: 20px;
+  background-color: #f5f5f5;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  font-family: monospace;
+  text-align: left;
+}
+
+.downloadLink {
+  display: inline-block;
+  margin-top: 10px;
+  color: #0077cc;
+  text-decoration: underline;
+  font-weight: 500;
+}

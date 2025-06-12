@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -11,25 +12,23 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
-      <h1 className="text-lg font-semibold">Digital Time Capsule</h1>
-      <div className="space-x-4">
+    <nav className={styles.navbar}>
+      <h1 className={styles.logo}>Digital Time Capsule</h1>
+      <div className={styles.navLinks}>
         {isAuthenticated ? (
           <>
-            <Link to="/dashboard" className="hover:underline">Dashboard</Link>
-            <Link to="/create" className="hover:underline">Create</Link>
-            <Link to="/profile" className="hover:underline">Profile</Link>
-            <button
-              onClick={handleLogout}
-              className="ml-2 px-3 py-1 bg-red-600 rounded hover:bg-red-700"
-            >
+            <Link to="/dashboard" className={styles.link}>Dashboard</Link>
+            <Link to="/create" className={styles.link}>Create</Link>
+            <Link to="/profile" className={styles.link}>Profile</Link>
+            <Link to="/export" className="hover:underline">Export</Link>
+            <button onClick={handleLogout} className={styles.logoutBtn}>
               Logout
             </button>
           </>
         ) : (
           <>
-            <Link to="/login" className="hover:underline">Login</Link>
-            <Link to="/register" className="hover:underline">Register</Link>
+            <Link to="/login" className={styles.link}>Login</Link>
+            <Link to="/register" className={styles.link}>Register</Link>
           </>
         )}
       </div>

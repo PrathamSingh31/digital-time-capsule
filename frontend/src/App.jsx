@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import CreateMessage from './pages/CreateMessage';
 import Layout from './components/Layout';
+import ImportMessages from './components/ImportMessages';
+import ExportMessages from './components/ExportMessages';
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -20,6 +22,8 @@ export default function App() {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/import" element={<ImportMessages />} />
+        <Route path="/export" element={<ExportMessages />} />
 
         {/* Protected layout with Navbar */}
         <Route

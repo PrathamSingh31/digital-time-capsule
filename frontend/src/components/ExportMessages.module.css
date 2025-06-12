@@ -1,0 +1,36 @@
+.container {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.button {
+  background-color: #16a34a;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: #15803d;
+}
+
+.button:disabled {
+  background-color: #86efac;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: #dc2626;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.successMessage {
+  color: #15803d;
+  margin-top: 8px;
+  font-weight: 500;
+}

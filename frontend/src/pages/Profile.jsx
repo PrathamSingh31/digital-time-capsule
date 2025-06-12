@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosPrivate from '../api/axiosPrivate';
+import styles from './Profile.module.css';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -8,27 +9,29 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axiosPrivate.get('/user/profile');
+        const response = await axiosPrivate.get('/api/auth/profile');
+ // ✅ New - matches backend
+
         setProfile(response.data);
       } catch (error) {
         console.error("Error loading profile:", error);
       } finally {
-        setLoading(false); // ✅ Important!
+        setLoading(false);
       }
     };
 
     fetchProfile();
   }, []);
 
-  if (loading) return <p>Loading profile...</p>;
+  if (loading) return <p className={styles.status}>Loading profile...</p>;
 
-  if (!profile) return <p>Failed to load profile</p>;
+  if (!profile) return <p className={styles.status}>Failed to load profile</p>;
 
   return (
-    <div>
-      <h2>User Profile</h2>
-      <p><strong>Username:</strong> {profile.username}</p>
-      <p><strong>Email:</strong> {profile.email}</p>
+    <div className={styles.profileContainer}>
+      <h2 className={styles.heading}>User Profile</h2>
+      <p className={styles.detail}><strong>Username:</strong> {profile.username}</p>
+      <p className={styles.detail}><strong>Email:</strong> {profile.email}</p>
     </div>
   );
 }

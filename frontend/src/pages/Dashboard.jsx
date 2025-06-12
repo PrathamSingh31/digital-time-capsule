@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axiosPrivate from '../api/axiosPrivate';
+import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -10,17 +11,30 @@ export default function Dashboard() {
 
   const fetchMessages = async () => {
     try {
-      const response = await axiosPrivate.get('/user/messages');
-      setMessages(response.data);
+      const response = await axiosPrivate.get('/api/user/messages');
+
+      if (Array.isArray(response.data)) {
+        const normalized = response.data.map(msg => ({
+          ...msg,
+          deliveryDate: msg.messageDateTime
+            ? msg.messageDateTime.split('T')[0]
+            : '',
+        }));
+        setMessages(normalized);
+      } else {
+        setMessages([]);
+        console.warn('Messages data is not an array:', response.data);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axiosPrivate.delete(`/user/messages/${id}`);
-      setMessages(messages.filter((msg) => msg.id !== id));
+      await axiosPrivate.delete(`/api/user/messages/${id}`);
+      setMessages((prev) => prev.filter((msg) => msg.id !== id));
     } catch (error) {
       console.error('Error deleting message:', error);
     }
@@ -35,7 +49,7 @@ export default function Dashboard() {
 
   const handleUpdate = async () => {
     try {
-      await axiosPrivate.put(`/user/messages/${editingMessageId}`, {
+      await axiosPrivate.put(`/api/user/messages/${editingMessageId}`, {
         title: editedTitle,
         content: editedContent,
         deliveryDate: editedDate,
@@ -44,7 +58,7 @@ export default function Dashboard() {
       setEditedTitle('');
       setEditedContent('');
       setEditedDate('');
-      fetchMessages(); // reload after update
+      fetchMessages();
     } catch (error) {
       console.error('Error updating message:', error);
     }
@@ -55,63 +69,76 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Your Messages</h2>
-      <ul className="space-y-4">
-        {messages.map((msg) => (
-          <li key={msg.id} className="bg-gray-100 p-4 rounded shadow">
-            {editingMessageId === msg.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  className="w-full p-2 border rounded mb-2"
-                  placeholder="Title"
-                />
-                <textarea
-                  value={editedContent}
-                  onChange={(e) => setEditedContent(e.target.value)}
-                  className="w-full p-2 border rounded mb-2"
-                  placeholder="Content"
-                />
-                <input
-                  type="date"
-                  value={editedDate}
-                  onChange={(e) => setEditedDate(e.target.value)}
-                  className="w-full p-2 border rounded mb-2"
-                />
-                <button
-                  onClick={handleUpdate}
-                  className="px-4 py-1 bg-blue-600 text-white rounded"
-                >
-                  Save
-                </button>
-              </>
-            ) : (
-              <>
-                <h3 className="font-semibold">{msg.title}</h3>
-                <p>{msg.content}</p>
-                <p className="text-sm text-gray-600">Deliver on: {msg.deliveryDate}</p>
-                <div className="mt-2 space-x-2">
-                  <button
-                    onClick={() => handleEdit(msg.id, msg.title, msg.content, msg.deliveryDate)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded"
-                  >
-                    Edit
+    <div className={styles.container}>
+      <h2 className={styles.heading}>📬 Your Messages</h2>
+      {Array.isArray(messages) && messages.length > 0 ? (
+        <ul className={styles.messageList}>
+          {messages.map((msg) => (
+            <li key={msg.id} className={styles.messageCard}>
+              {editingMessageId === msg.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    className={styles.input}
+                    placeholder="Title"
+                  />
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className={styles.textarea}
+                    placeholder="Content"
+                  />
+                  <input
+                    type="date"
+                    value={editedDate}
+                    onChange={(e) => setEditedDate(e.target.value)}
+                    className={styles.input}
+                  />
+                  <button onClick={handleUpdate} className={styles.saveButton}>
+                    💾 Save
                   </button>
-                  <button
-                    onClick={() => handleDelete(msg.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+                </>
+              ) : (
+                <>
+                  <h3 className={styles.title}>{msg.title}</h3>
+                  <p className={styles.content}>{msg.content}</p>
+                  <p className={styles.date}>
+                    📅 Deliver on:{' '}
+                    {msg.messageDateTime
+                      ? new Date(msg.messageDateTime).toLocaleDateString()
+                      : 'N/A'}
+                  </p>
+                  <div className={styles.actions}>
+                    <button
+                      onClick={() =>
+                        handleEdit(
+                          msg.id,
+                          msg.title,
+                          msg.content,
+                          msg.deliveryDate
+                        )
+                      }
+                      className={styles.editButton}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(msg.id)}
+                      className={styles.deleteButton}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.empty}>No messages yet.</p>
+      )}
     </div>
   );
 }

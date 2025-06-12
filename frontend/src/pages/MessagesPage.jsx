@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import styles from "./MessagesPage.module.css";
 
 function MessagesPage() {
   const [messages, setMessages] = useState([]);
@@ -29,33 +30,33 @@ function MessagesPage() {
   }, [year, sort]);
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">My Messages</h2>
+    <div className={styles.container}>
+      <h2 className={styles.heading}>My Messages</h2>
 
       {/* Filter and Sort Controls */}
-      <div className="flex gap-4 mb-4">
+      <div className={styles.controls}>
         <input
           type="number"
           placeholder="Filter by Year"
           value={year}
           onChange={(e) => setYear(e.target.value)}
-          className="border p-2 rounded"
+          className={styles.input}
         />
 
-        <select value={sort} onChange={(e) => setSort(e.target.value)} className="border p-2 rounded">
+        <select value={sort} onChange={(e) => setSort(e.target.value)} className={styles.select}>
           <option value="desc">Newest First</option>
           <option value="asc">Oldest First</option>
         </select>
       </div>
 
       {/* Message List */}
-      <div className="grid gap-4">
+      <div className={styles.messageGrid}>
         {messages.map((msg) => (
-          <div key={msg.id} className="border p-4 rounded shadow">
-            <h4 className="text-lg font-semibold">{msg.title}</h4>
-            <p>{msg.content}</p>
-            <small>Created: {new Date(msg.createdAt).toLocaleDateString()}</small><br />
-            <small>Delivery: {new Date(msg.deliveryDate).toLocaleDateString()}</small>
+          <div key={msg.id} className={styles.messageCard}>
+            <h4 className={styles.title}>{msg.title}</h4>
+            <p className={styles.content}>{msg.content}</p>
+            <small className={styles.date}>Created: {new Date(msg.createdAt).toLocaleDateString()}</small><br />
+            <small className={styles.date}>Delivery: {new Date(msg.deliveryDate).toLocaleDateString()}</small>
           </div>
         ))}
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axiosAuth from '../api/axiosAuth';
 import { useNavigate } from 'react-router-dom';
+import styles from './Login.module.css';
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -29,9 +30,9 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '50px auto' }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+    <div className={styles.loginContainer}>
+      <h2 className={styles.heading}>Login</h2>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
           name="username"
@@ -39,7 +40,7 @@ export default function Login() {
           value={formData.username}
           onChange={handleChange}
           required
-          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+          className={styles.input}
         />
         <input
           type="password"
@@ -48,9 +49,9 @@ export default function Login() {
           value={formData.password}
           onChange={handleChange}
           required
-          style={{ display: 'block', width: '100%', marginBottom: '10px' }}
+          className={styles.input}
         />
-        <button type="submit" style={{ width: '100%' }}>
+        <button type="submit" className={styles.button}>
           Login
         </button>
       </form>
