@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axiosPrivate from '../api/axiosPrivate';
 import styles from './Dashboard.module.css';
+import FilterMessages from "../components/FilterMessages";
+
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -12,7 +14,6 @@ export default function Dashboard() {
   const fetchMessages = async () => {
     try {
       const response = await axiosPrivate.get('/api/user/messages');
-
       if (Array.isArray(response.data)) {
         const normalized = response.data.map(msg => ({
           ...msg,
@@ -29,6 +30,16 @@ export default function Dashboard() {
       console.error('Error fetching messages:', error);
       setMessages([]);
     }
+  };
+
+  const handleFilterUpdate = (filteredMessages) => {
+    const normalized = filteredMessages.map(msg => ({
+      ...msg,
+      deliveryDate: msg.messageDateTime
+        ? msg.messageDateTime.split('T')[0]
+        : '',
+    }));
+    setMessages(normalized);
   };
 
   const handleDelete = async (id) => {
@@ -71,6 +82,10 @@ export default function Dashboard() {
   return (
     <div className={styles.container}>
       <h2 className={styles.heading}>📬 Your Messages</h2>
+
+      {/* Filter + Sort Component */}
+      <FilterMessages onMessagesUpdate={handleFilterUpdate} />
+
       {Array.isArray(messages) && messages.length > 0 ? (
         <ul className={styles.messageList}>
           {messages.map((msg) => (
