@@ -20,5 +20,6 @@ public interface UserMessageRepository extends JpaRepository<UserMessage, Long> 
 
     List<UserMessage> findByUserAndMessageDateTimeAfter(User user, LocalDateTime dateTime);
 
+    List<UserMessage> findByMessageDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
 }
