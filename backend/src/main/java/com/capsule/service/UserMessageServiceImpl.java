@@ -28,8 +28,10 @@ public class UserMessageServiceImpl implements UserMessageService {
 
     @Override
     public UserMessage createMessage(Long userId, MessageRequest request) {
+        System.out.println("✅ Creating message for userId: " + userId);
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("❌ User not found in DB with ID: " + userId));
 
         UserMessage userMessage = new UserMessage();
         userMessage.setTitle(request.getTitle());
@@ -102,7 +104,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public void importMessages(Long userId, List<MessageRequest> messages) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("❌ User not found with ID: " + userId));
 
         for (MessageRequest request : messages) {
             UserMessage message = new UserMessage();
@@ -152,5 +154,4 @@ public class UserMessageServiceImpl implements UserMessageService {
         LocalDateTime now = LocalDateTime.now();
         return userMessageRepository.findByUserAndMessageDateTimeAfter(user, now);
     }
-
 }

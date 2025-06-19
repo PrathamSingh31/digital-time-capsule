@@ -3,8 +3,8 @@ package com.capsule.repository;
 import com.capsule.model.User;
 import com.capsule.model.UserMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface UserMessageRepository extends JpaRepository<UserMessage, Long> {
@@ -12,14 +12,15 @@ public interface UserMessageRepository extends JpaRepository<UserMessage, Long> 
     // Find messages by User entity
     List<UserMessage> findByUser(User user);
 
-    // Find messages by User ID
+    // Find messages by user ID
     List<UserMessage> findByUserId(Long userId);
 
-    // Find messages by username (property of User)
+    // Find messages by username (field of User)
     List<UserMessage> findByUserUsername(String username);
 
+    // Find future messages for a user
     List<UserMessage> findByUserAndMessageDateTimeAfter(User user, LocalDateTime dateTime);
 
+    // Find messages within a specific date range
     List<UserMessage> findByMessageDateTimeBetween(LocalDateTime start, LocalDateTime end);
-
 }

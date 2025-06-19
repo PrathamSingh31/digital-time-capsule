@@ -1,11 +1,12 @@
 package com.capsule.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
+
 import java.util.List;
 
 @Entity
+@Table(name = "users") // ✅ FIX: Explicitly map this entity to the "users" table
 public class User {
 
     @Id
@@ -16,13 +17,16 @@ public class User {
     private String password;
     private String email;
 
+    @Column(name = "email_reminders_enabled", nullable = false)
+    private Boolean emailRemindersEnabled = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<UserMessage> userMessages;
 
-    // constructors, getters, setters below (without Lombok)
-
     public User() {}
+
+    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -54,6 +58,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isEmailRemindersEnabled() {
+        return emailRemindersEnabled != null && emailRemindersEnabled;
+    }
+
+    public void setEmailRemindersEnabled(Boolean emailRemindersEnabled) {
+        this.emailRemindersEnabled = emailRemindersEnabled != null && emailRemindersEnabled;
     }
 
     public List<UserMessage> getUserMessages() {

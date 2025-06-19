@@ -1,10 +1,11 @@
 package com.capsule.controller;
 
-import com.capsule.model.UserMessage;
 import com.capsule.dto.MessageRequest;
+import com.capsule.model.UserMessage;
 import com.capsule.security.UserPrincipal;
 import com.capsule.service.UserMessageService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -27,16 +28,26 @@ public class UserMessageController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // ✅ Create Message
+    // ✅ Create a new message
     @PostMapping
-    public ResponseEntity<UserMessage> createMessage(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                     @RequestBody MessageRequest request) {
-        Long userId = userPrincipal.getId();
-        UserMessage message = userMessageService.createMessage(userId, request);
-        return ResponseEntity.ok(message);
+    public ResponseEntity<?> createMessage(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                           @Valid @RequestBody MessageRequest request) {
+        if (userPrincipal == null) {
+            return ResponseEntity.status(401).body("Unauthorized access.");
+        }
+
+        try {
+            Long userId = userPrincipal.getId();
+            System.out.println("Authenticated user ID: " + userId); // 🔍 Debug user ID
+
+            UserMessage message = userMessageService.createMessage(userId, request);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            e.printStackTrace(); // 👈 full stack trace
+            return ResponseEntity.badRequest().body("Failed to create message: " + e.getMessage());
+        }
     }
 
-    // ✅ Get All Messages for Logged-in User
     @GetMapping
     public ResponseEntity<List<UserMessage>> getMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         Long userId = userPrincipal.getId();
@@ -44,7 +55,6 @@ public class UserMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    // ✅ Filter & Sort Messages by Year
     @GetMapping("/filter")
     public ResponseEntity<List<UserMessage>> filterMessages(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -55,32 +65,38 @@ public class UserMessageController {
         return ResponseEntity.ok(filtered);
     }
 
-    // ✅ Update Message
     @PutMapping("/{id}")
-    public ResponseEntity<UserMessage> updateMessage(@PathVariable Long id,
-                                                     @AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                     @RequestBody MessageRequest request) {
-        UserMessage updated = userMessageService.updateMessage(id, userPrincipal.getId(), request);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<?> updateMessage(@PathVariable Long id,
+                                           @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                           @Valid @RequestBody MessageRequest request) {
+        try {
+            UserMessage updated = userMessageService.updateMessage(id, userPrincipal.getId(), request);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error updating message: " + e.getMessage());
+        }
     }
 
-    // ✅ Delete Message
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id,
                                            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        userMessageService.deleteMessage(id, userPrincipal.getId());
-        return ResponseEntity.ok("Message deleted successfully");
+        try {
+            userMessageService.deleteMessage(id, userPrincipal.getId());
+            return ResponseEntity.ok("Message deleted successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error deleting message: " + e.getMessage());
+        }
     }
 
-    // ✅ Import Messages from JSON list
     @PostMapping("/import")
     public ResponseEntity<?> importMessages(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                             @RequestBody List<MessageRequest> messages) {
         try {
-            Long userId = userPrincipal.getId();
-            userMessageService.importMessages(userId, messages);
+            System.out.println("Received messages: " + messages);
+            userMessageService.importMessages(userPrincipal.getId(), messages);
             return ResponseEntity.ok("Messages imported successfully.");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Failed to import messages: " + e.getMessage());
         }
     }
@@ -92,30 +108,27 @@ public class UserMessageController {
         return ResponseEntity.ok(scheduled);
     }
 
-
-    // ✅ Export Messages as JSON File
     @GetMapping("/export")
     public ResponseEntity<Resource> exportMessages(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         try {
             List<UserMessage> messages = userMessageService.getMessagesByUserUsername(userPrincipal.getUsername());
-            String jsonString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
+            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
 
-            byte[] bytes = jsonString.getBytes();
-            ByteArrayResource resource = new ByteArrayResource(bytes);
+            ByteArrayResource resource = new ByteArrayResource(json.getBytes());
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=exported-messages.json");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=messages.json");
 
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentLength(bytes.length)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentLength(json.getBytes().length)
                     .body(resource);
-
         } catch (Exception e) {
             byte[] errorBytes = ("Error exporting messages: " + e.getMessage()).getBytes();
-            ByteArrayResource errorResource = new ByteArrayResource(errorBytes);
-            return ResponseEntity.internalServerError().body(errorResource);
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(new ByteArrayResource(errorBytes));
         }
     }
 }

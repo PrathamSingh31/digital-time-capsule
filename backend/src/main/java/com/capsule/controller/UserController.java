@@ -16,6 +16,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.capsule.service.EmailService;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,6 +34,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterDTO registerDTO) {
@@ -59,5 +65,50 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
     }
+
+    @PutMapping("/settings/email-reminders")
+    public ResponseEntity<String> updateEmailReminders(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam boolean enabled) {
+        userService.updateEmailReminderSetting(userPrincipal.getId(), enabled);
+        return ResponseEntity.ok("Email reminder setting updated");
+    }
+
+    @GetMapping("/settings/email-reminders")
+    public ResponseEntity<Boolean> getEmailReminders(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        boolean isEnabled = userService.getEmailReminderSetting(userPrincipal.getId());
+        return ResponseEntity.ok(isEnabled);
+    }
+
+    @PostMapping("/send-test-reminder")
+    public ResponseEntity<String> sendTestReminder(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        if (userPrincipal == null || userPrincipal.getEmail() == null) {
+            return ResponseEntity.badRequest().body("User not authenticated or email is missing");
+        }
+
+        emailService.sendTestReminder(userPrincipal.getEmail());
+        return ResponseEntity.ok("Test reminder email sent to: " + userPrincipal.getEmail());
+    }
+
+
+
+    @PostMapping("/test-reminder")
+    public ResponseEntity<String> testReminder(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        String username = authentication.getName();
+        User user = userService.getUserByUsername(username);
+        emailService.sendTestReminder(user.getEmail());
+
+        return ResponseEntity.ok("Test reminder email sent to: " + user.getEmail());
+    }
+
+
+
+
+
 
 }
