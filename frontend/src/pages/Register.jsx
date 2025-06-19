@@ -3,7 +3,13 @@ import axiosAuth from '../api/axiosAuth';
 import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    emailRemindersEnabled: true, // ✅ Include this field by default
+  });
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -16,7 +22,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axiosAuth.post('/register', formData);
+      await axiosAuth.post('/register', formData); // ✅ `emailRemindersEnabled` included
       alert('Registration successful. Please log in.');
       navigate('/login');
     } catch (error) {

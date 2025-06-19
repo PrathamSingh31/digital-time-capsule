@@ -25,3 +25,44 @@
   font-style: italic;
   margin-top: 50px;
 }
+
+.toggleBtn {
+  padding: 8px 16px;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.toggleBtn:hover {
+  background-color: #0056b3;
+}
+
+.status {
+  margin-top: 10px;
+  color: #555;
+  font-style: italic;
+}
+
+.testButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  margin-top: 16px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.testButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 12px;
+  font-weight: bold;
+}

@@ -8,16 +8,38 @@ const CreateMessage = () => {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const isFutureOrTodayDate = (date) => {
+    const today = new Date().toISOString().split("T")[0];
+    return date >= today;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMessage("");
     setErrorMessage("");
+    setLoading(true);
+
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+
+    if (!trimmedTitle || !trimmedContent || !deliveryDate) {
+      setErrorMessage("❌ All fields are required.");
+      setLoading(false);
+      return;
+    }
+
+    if (!isFutureOrTodayDate(deliveryDate)) {
+      setErrorMessage("❌ Delivery date must be today or a future date.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axiosPrivate.post("/api/user/messages", {
-        title,
-        content,
+        title: trimmedTitle,
+        content: trimmedContent,
         deliveryDate,
       });
 
@@ -28,7 +50,11 @@ const CreateMessage = () => {
       console.log("Message saved:", response.data);
     } catch (error) {
       console.error("Error saving message:", error);
-      setErrorMessage("❌ Failed to save message. Please try again.");
+      const serverMessage =
+        error?.response?.data || "❌ Failed to save message. Please try again.";
+      setErrorMessage(serverMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,8 +85,8 @@ const CreateMessage = () => {
           className={styles.input}
           required
         />
-        <button type="submit" className={styles.button}>
-          Save Message
+        <button type="submit" className={styles.button} disabled={loading}>
+          {loading ? "Saving..." : "Save Message"}
         </button>
       </form>
 
