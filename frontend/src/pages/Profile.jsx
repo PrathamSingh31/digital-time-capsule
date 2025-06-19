@@ -7,6 +7,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
+  const [emailRemindersEnabled, setEmailRemindersEnabled] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,7 +22,17 @@ export default function Profile() {
       }
     };
 
+    const fetchReminderSetting = async () => {
+      try {
+        const res = await axiosPrivate.get('/api/auth/settings/email-reminders');
+        setEmailRemindersEnabled(res.data);
+      } catch (err) {
+        console.error("Failed to fetch reminder setting", err);
+      }
+    };
+
     fetchProfile();
+    fetchReminderSetting();
   }, []);
 
   const sendTestReminder = async () => {
@@ -37,8 +49,22 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <p className={styles.status}>Loading profile...</p>;
+  const toggleEmailReminders = async () => {
+    const newValue = !emailRemindersEnabled;
+    setUpdating(true);
+    try {
+      await axiosPrivate.put(`/api/auth/settings/email-reminders?enabled=${newValue}`);
+      setEmailRemindersEnabled(newValue);
+      setMessage(`✅ Email reminders ${newValue ? 'enabled' : 'disabled'}.`);
+    } catch (error) {
+      console.error("Failed to update email reminders:", error);
+      setMessage("❌ Failed to update reminder setting.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
+  if (loading) return <p className={styles.status}>Loading profile...</p>;
   if (!profile) return <p className={styles.status}>Failed to load profile</p>;
 
   return (
@@ -46,6 +72,17 @@ export default function Profile() {
       <h2 className={styles.heading}>User Profile</h2>
       <p className={styles.detail}><strong>Username:</strong> {profile.username}</p>
       <p className={styles.detail}><strong>Email:</strong> {profile.email}</p>
+
+      <div className={styles.reminderToggle}>
+        <label><strong>📩 Email Reminders:</strong></label>
+        <button
+          onClick={toggleEmailReminders}
+          disabled={updating}
+          className={styles.toggleButton}
+        >
+          {emailRemindersEnabled ? 'Disable' : 'Enable'}
+        </button>
+      </div>
 
       <button onClick={sendTestReminder} className={styles.testButton} disabled={sending}>
         {sending ? 'Sending...' : '📧 Send Test Reminder'}

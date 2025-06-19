@@ -66,3 +66,21 @@
   margin-top: 12px;
   font-weight: bold;
 }
+
+.reminderToggle {
+  margin-top: 10px;
+}
+
+.toggleButton {
+  padding: 8px 14px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.toggleButton:hover {
+  background-color: #218838;
+}
