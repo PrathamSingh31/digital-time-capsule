@@ -30,6 +30,7 @@ export default function SharedMessage() {
       <h2 className={styles.title}>{message.title}</h2>
       <p className={styles.content}>{message.content}</p>
 
+      {/* Image preview */}
       {message.imageUrl ? (
         <img
           src={`http://localhost:8080${message.imageUrl}`}
@@ -44,13 +45,25 @@ export default function SharedMessage() {
         <p className={styles.noImage}>📁 No image attached</p>
       )}
 
+      {/* Video preview */}
+      {message.videoUrl ? (
+        <video controls className={styles.video}>
+          <source
+            src={`http://localhost:8080${message.videoUrl}`}
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+      ) : (
+        <p className={styles.noVideo}>📁 No video attached</p>
+      )}
+
       <p className={styles.date}>
         🗓️ Scheduled for:{" "}
         {message.date
           ? new Date(message.date).toLocaleDateString()
           : "N/A"}
       </p>
-
     </div>
   );
 }
