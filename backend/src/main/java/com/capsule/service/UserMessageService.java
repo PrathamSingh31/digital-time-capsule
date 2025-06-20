@@ -20,4 +20,6 @@ public interface UserMessageService {
     UserMessage getMessageByShareToken(String token);          // ✅ NEW
     String enableSharing(Long messageId, Long userId);         // ✅ NEW
     void disableSharing(Long messageId, Long userId);          // ✅ NEW
+    UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile);
+
 }

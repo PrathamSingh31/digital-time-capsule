@@ -6,21 +6,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserMessageRepository extends JpaRepository<UserMessage, Long> {
-
-    // Find messages by User entity
     List<UserMessage> findByUser(User user);
-
-    // Find messages by user ID
     List<UserMessage> findByUserId(Long userId);
-
-    // Find messages by username (field of User)
     List<UserMessage> findByUserUsername(String username);
-
-    // Find future messages for a user
     List<UserMessage> findByUserAndMessageDateTimeAfter(User user, LocalDateTime dateTime);
-
-    // Find messages within a specific date range
     List<UserMessage> findByMessageDateTimeBetween(LocalDateTime start, LocalDateTime end);
+
+    Optional<UserMessage> findByIdAndUserId(Long messageId, Long userId); // ✅ for security
+
+
+    List<UserMessage> findByUserAndMessageDateTimeBetween(User user, LocalDateTime start, LocalDateTime end);
+
+    Optional<UserMessage> findByShareToken(String shareToken);
+
 }

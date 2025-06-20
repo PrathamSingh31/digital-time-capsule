@@ -6,7 +6,9 @@ import com.capsule.dto.RegisterDTO;
 import com.capsule.model.User;
 import com.capsule.security.JwtUtil;
 import com.capsule.security.UserPrincipal;
+import com.capsule.service.EmailService;
 import com.capsule.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -14,16 +16,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import com.capsule.service.EmailService;
-
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:5174")
-
 public class UserController {
 
     @Autowired
@@ -36,7 +34,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private EmailService emailService;
+    private EmailService emailService; // ✅ Correct injection
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody RegisterDTO registerDTO) {
@@ -91,8 +89,6 @@ public class UserController {
         return ResponseEntity.ok("Test reminder email sent to: " + userPrincipal.getEmail());
     }
 
-
-
     @PostMapping("/test-reminder")
     public ResponseEntity<String> testReminder(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -105,10 +101,4 @@ public class UserController {
 
         return ResponseEntity.ok("Test reminder email sent to: " + user.getEmail());
     }
-
-
-
-
-
-
 }

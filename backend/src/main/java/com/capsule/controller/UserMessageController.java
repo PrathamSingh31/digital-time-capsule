@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -137,8 +138,16 @@ public class UserMessageController {
         publicMessage.put("content", sharedMessage.getContent());
         publicMessage.put("date", sharedMessage.getMessageDateTime());
 
+        // ✅ Add imageUrl if it exists
+        if (sharedMessage.getImageUrl() != null && !sharedMessage.getImageUrl().isEmpty()) {
+            publicMessage.put("imageUrl", sharedMessage.getImageUrl());
+        }
+
         return ResponseEntity.ok(publicMessage);
     }
+
+
+
 
     // ✅ GENERATE OR RETURN EXISTING TOKEN
     @PutMapping("/{id}/share")
@@ -164,4 +173,24 @@ public class UserMessageController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to disable sharing: " + e.getMessage());
         }
     }
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadMessageWithImage(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam("deliveryDate") String deliveryDate,
+            @RequestParam("image") MultipartFile imageFile) {
+
+        try {
+            UserMessage message = userMessageService.createMessageWithImage(
+                    userPrincipal.getId(), title, content, deliveryDate, imageFile
+            );
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to upload image: " + e.getMessage());
+        }
+    }
+
 }

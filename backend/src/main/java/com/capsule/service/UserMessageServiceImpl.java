@@ -9,6 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -18,6 +22,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.io.File;
+
 
 @Service
 public class UserMessageServiceImpl implements UserMessageService {
@@ -197,5 +203,44 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.findByShareToken(token)
                 .orElseThrow(() -> new RuntimeException("Message not found or link invalid"));
     }
+
+    @Override
+    public UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserMessage message = new UserMessage();
+        message.setTitle(title);
+        message.setContent(content);
+
+        if (deliveryDate != null && !deliveryDate.isEmpty()) {
+            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setMessageDateTime(date.atStartOfDay());
+            message.setYear(date.getYear());
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            message.setMessageDateTime(now);
+            message.setYear(now.getYear());
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+                Path uploadDir = Paths.get("uploads/images").toAbsolutePath().normalize();
+                Files.createDirectories(uploadDir);
+
+                Path filePath = uploadDir.resolve(filename);
+                Files.copy(imageFile.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                message.setImageUrl("/images/" + filename);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to save image file", e);
+            }
+        }
+
+        message.setUser(user);
+        return userMessageRepository.save(message);
+    }
+
 
 }

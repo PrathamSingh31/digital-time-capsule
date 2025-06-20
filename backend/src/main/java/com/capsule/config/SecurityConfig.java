@@ -42,12 +42,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/images/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
-                                "/api/user/messages/share/**" // ✅ Allow public access to shared message
+                                "/api/user/messages/share/**"
                         ).permitAll()
+
                         .requestMatchers("/api/auth/send-test-reminder").authenticated()
                         .anyRequest().authenticated()
                 )

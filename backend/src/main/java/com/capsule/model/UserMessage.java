@@ -28,6 +28,13 @@ public class UserMessage {
     @Column(name = "share_token", unique = true)
     private String shareToken; // ✅ NEW: Token for public sharing
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    // inside UserMessage.java
+    private String imagePath;
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
@@ -64,4 +71,16 @@ public class UserMessage {
     public User getUser() { return user; }
 
     public void setUser(User user) { this.user = user; }
+
+    public String getImageUrl() { return imageUrl; }
+
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
 }
