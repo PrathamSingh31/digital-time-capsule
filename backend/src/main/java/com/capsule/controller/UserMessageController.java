@@ -138,14 +138,18 @@ public class UserMessageController {
         publicMessage.put("content", sharedMessage.getContent());
         publicMessage.put("date", sharedMessage.getMessageDateTime());
 
-        // ✅ Add imageUrl if it exists
+        // ✅ Include imageUrl if present
         if (sharedMessage.getImageUrl() != null && !sharedMessage.getImageUrl().isEmpty()) {
             publicMessage.put("imageUrl", sharedMessage.getImageUrl());
         }
 
+        // ✅ Include videoUrl if present
+        if (sharedMessage.getVideoUrl() != null && !sharedMessage.getVideoUrl().isEmpty()) {
+            publicMessage.put("videoUrl", sharedMessage.getVideoUrl());
+        }
+
         return ResponseEntity.ok(publicMessage);
     }
-
 
 
 
@@ -174,23 +178,32 @@ public class UserMessageController {
         }
     }
 
-    @PostMapping("/upload-image")
-    public ResponseEntity<?> uploadMessageWithImage(
+    @PostMapping("/upload-media")
+    public ResponseEntity<?> uploadMessageWithMedia(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam("deliveryDate") String deliveryDate,
-            @RequestParam("image") MultipartFile imageFile) {
+            @RequestParam(value = "image", required = false) MultipartFile imageFile,
+            @RequestParam(value = "video", required = false) MultipartFile videoFile) {
 
         try {
-            UserMessage message = userMessageService.createMessageWithImage(
-                    userPrincipal.getId(), title, content, deliveryDate, imageFile
+            UserMessage message = userMessageService.createMessageWithMedia(
+                    userPrincipal.getId(),
+                    title,
+                    content,
+                    deliveryDate,
+                    imageFile,
+                    videoFile
             );
             return ResponseEntity.ok(message);
         } catch (Exception e) {
+            // ✅ Add this line to reveal exact cause
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Failed to upload image: " + e.getMessage());
+                    .body("Failed to upload media: " + e.getMessage());
         }
     }
+
 
 }
