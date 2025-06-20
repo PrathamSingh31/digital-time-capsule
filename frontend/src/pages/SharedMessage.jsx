@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "../api/axiosPublic"; // 👈 this one has no auth header
+import axios from "../api/axiosPublic"; // Axios instance without auth header
 import styles from "./SharedMessage.module.css";
 
 export default function SharedMessage() {
@@ -29,10 +29,28 @@ export default function SharedMessage() {
     <div className={styles.container}>
       <h2 className={styles.title}>{message.title}</h2>
       <p className={styles.content}>{message.content}</p>
+
+      {message.imageUrl ? (
+        <img
+          src={`http://localhost:8080${message.imageUrl}`}
+          alt="Uploaded message visual"
+          className={styles.image}
+          onError={(e) => {
+            e.target.style.display = "none";
+            console.warn("⚠️ Image failed to load");
+          }}
+        />
+      ) : (
+        <p className={styles.noImage}>📁 No image attached</p>
+      )}
+
       <p className={styles.date}>
         🗓️ Scheduled for:{" "}
-        {new Date(message.date).toLocaleDateString()}
+        {message.date
+          ? new Date(message.date).toLocaleDateString()
+          : "N/A"}
       </p>
+
     </div>
   );
 }

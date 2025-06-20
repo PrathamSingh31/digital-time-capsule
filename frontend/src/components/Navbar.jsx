@@ -13,16 +13,23 @@ export default function Navbar() {
 
   return (
     <nav className={styles.navbar}>
-      <h1 className={styles.logo}>Digital Time Capsule</h1>
+      <h1 className={styles.logo}>🎁 Digital Time Capsule</h1>
+
       <div className={styles.navLinks}>
         {isAuthenticated ? (
           <>
+            {/* Main Navigation */}
             <Link to="/dashboard" className={styles.link}>Dashboard</Link>
             <Link to="/create" className={styles.link}>Create</Link>
             <Link to="/profile" className={styles.link}>Profile</Link>
-            <Link to="/import" className={styles.link}>Import</Link> {/* ✅ Import Link */}
+
+            {/* Tools Section */}
+            <Link to="/import" className={styles.link}>Import</Link>
             <Link to="/export" className={styles.link}>Export</Link>
             <Link to="/scheduled" className={styles.link}>Scheduled</Link>
+
+            {/* Future: Shareable Messages Page (optional) */}
+            {/* <Link to="/shared-links" className={styles.link}>Shared</Link> */}
 
             <button onClick={handleLogout} className={styles.logoutBtn}>
               Logout

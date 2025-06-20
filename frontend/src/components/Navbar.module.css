@@ -67,3 +67,25 @@
   background-color: #dc2626;
   transform: scale(1.05);
 }
+
+/* Optional Responsive Layout Tweaks */
+.navLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.logoutBtn {
+  background-color: #e74c3c;
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.logoutBtn:hover {
+  background-color: #c0392b;
+}
+

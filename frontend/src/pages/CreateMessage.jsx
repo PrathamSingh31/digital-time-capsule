@@ -6,6 +6,7 @@ const CreateMessage = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [image, setImage] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,22 +38,35 @@ const CreateMessage = () => {
     }
 
     try {
-      const response = await axiosPrivate.post("/api/user/messages", {
-        title: trimmedTitle,
-        content: trimmedContent,
-        deliveryDate,
+      const formData = new FormData();
+      formData.append("title", trimmedTitle);
+      formData.append("content", trimmedContent);
+      formData.append("deliveryDate", deliveryDate);
+      if (image) {
+        formData.append("image", image);
+      }
+
+      const response = await axiosPrivate.post("/api/user/messages/upload-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+
 
       setSuccessMessage("✅ Message saved successfully!");
       setTitle("");
       setContent("");
       setDeliveryDate("");
+      setImage(null);
       console.log("Message saved:", response.data);
     } catch (error) {
       console.error("Error saving message:", error);
-      const serverMessage =
-        error?.response?.data || "❌ Failed to save message. Please try again.";
-      setErrorMessage(serverMessage);
+     const serverMessage =
+       typeof error?.response?.data === "string"
+         ? error.response.data
+         : error?.response?.data?.message || "❌ Failed to save message. Please try again.";
+     setErrorMessage(serverMessage);
+
     } finally {
       setLoading(false);
     }
@@ -84,6 +98,12 @@ const CreateMessage = () => {
           onChange={(e) => setDeliveryDate(e.target.value)}
           className={styles.input}
           required
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+          className={styles.input}
         />
         <button type="submit" className={styles.button} disabled={loading}>
           {loading ? "Saving..." : "Save Message"}

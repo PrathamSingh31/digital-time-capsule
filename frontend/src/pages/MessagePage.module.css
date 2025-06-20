@@ -58,3 +58,17 @@
   font-size: 0.85rem;
   color: #666;
 }
+
+.shareButton {
+  margin-top: 8px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.shareButton:hover {
+  background-color: #357ab8;
+}

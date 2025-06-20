@@ -11,17 +11,19 @@ export default function Dashboard() {
   const [editedDate, setEditedDate] = useState('');
   const [sharedLinks, setSharedLinks] = useState({});
 
+  const normalizeMessages = (messages) =>
+    messages.map(msg => ({
+      ...msg,
+      deliveryDate: msg.messageDateTime
+        ? msg.messageDateTime.split('T')[0]
+        : '',
+    }));
+
   const fetchMessages = async () => {
     try {
       const response = await axiosPrivate.get('/api/user/messages');
       if (Array.isArray(response.data)) {
-        const normalized = response.data.map(msg => ({
-          ...msg,
-          deliveryDate: msg.messageDateTime
-            ? msg.messageDateTime.split('T')[0]
-            : '',
-        }));
-        setMessages(normalized);
+        setMessages(normalizeMessages(response.data));
       } else {
         setMessages([]);
         console.warn('Messages data is not an array:', response.data);
@@ -33,16 +35,11 @@ export default function Dashboard() {
   };
 
   const handleFilterUpdate = (filteredMessages) => {
-    const normalized = filteredMessages.map(msg => ({
-      ...msg,
-      deliveryDate: msg.messageDateTime
-        ? msg.messageDateTime.split('T')[0]
-        : '',
-    }));
-    setMessages(normalized);
+    setMessages(normalizeMessages(filteredMessages));
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
     try {
       await axiosPrivate.delete(`/api/user/messages/${id}`);
       setMessages((prev) => prev.filter((msg) => msg.id !== id));
@@ -87,6 +84,7 @@ export default function Dashboard() {
       alert("❌ Failed to generate share link.");
     }
   };
+
   useEffect(() => {
     fetchMessages();
   }, []);
@@ -130,12 +128,22 @@ export default function Dashboard() {
                 <>
                   <h3 className={styles.title}>{msg.title}</h3>
                   <p className={styles.content}>{msg.content}</p>
+
+                  {msg.imageUrl && (
+                    <img
+                      src={`http://localhost:8080${msg.imageUrl}`}
+                      alt="Message Visual"
+                      className={styles.image}
+                    />
+                  )}
+
                   <p className={styles.date}>
                     📅 Deliver on:{' '}
                     {msg.messageDateTime
                       ? new Date(msg.messageDateTime).toLocaleDateString()
                       : 'N/A'}
                   </p>
+
                   <div className={styles.actions}>
                     <button
                       onClick={() =>
@@ -163,9 +171,14 @@ export default function Dashboard() {
                       🔗 Share
                     </button>
                   </div>
+
                   {sharedLinks[msg.id] && (
                     <p className={styles.sharedLink}>
-                      <a href={sharedLinks[msg.id]} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={sharedLinks[msg.id]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         📎 View Shared Link
                       </a>
                     </p>
