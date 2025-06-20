@@ -3,13 +3,13 @@ import axiosPrivate from '../api/axiosPrivate';
 import styles from './Dashboard.module.css';
 import FilterMessages from "../components/FilterMessages";
 
-
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const [editedDate, setEditedDate] = useState('');
+  const [sharedLinks, setSharedLinks] = useState({});
 
   const fetchMessages = async () => {
     try {
@@ -75,6 +75,18 @@ export default function Dashboard() {
     }
   };
 
+  const handleShare = async (messageId) => {
+    try {
+      const response = await axiosPrivate.put(`/api/user/messages/${messageId}/share`);
+      const shareUrl = response.data;
+      await navigator.clipboard.writeText(shareUrl);
+      setSharedLinks(prev => ({ ...prev, [messageId]: shareUrl }));
+      alert(`✅ Shareable link copied to clipboard:\n${shareUrl}`);
+    } catch (error) {
+      console.error("Error sharing message:", error);
+      alert("❌ Failed to generate share link.");
+    }
+  };
   useEffect(() => {
     fetchMessages();
   }, []);
@@ -83,7 +95,6 @@ export default function Dashboard() {
     <div className={styles.container}>
       <h2 className={styles.heading}>📬 Your Messages</h2>
 
-      {/* Filter + Sort Component */}
       <FilterMessages onMessagesUpdate={handleFilterUpdate} />
 
       {Array.isArray(messages) && messages.length > 0 ? (
@@ -145,7 +156,20 @@ export default function Dashboard() {
                     >
                       🗑️ Delete
                     </button>
+                    <button
+                      onClick={() => handleShare(msg.id)}
+                      className={styles.shareButton}
+                    >
+                      🔗 Share
+                    </button>
                   </div>
+                  {sharedLinks[msg.id] && (
+                    <p className={styles.sharedLink}>
+                      <a href={sharedLinks[msg.id]} target="_blank" rel="noopener noreferrer">
+                        📎 View Shared Link
+                      </a>
+                    </p>
+                  )}
                 </>
               )}
             </li>
