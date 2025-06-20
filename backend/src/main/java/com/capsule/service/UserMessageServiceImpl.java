@@ -8,6 +8,7 @@ import com.capsule.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.Optional;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -154,4 +156,46 @@ public class UserMessageServiceImpl implements UserMessageService {
         LocalDateTime now = LocalDateTime.now();
         return userMessageRepository.findByUserAndMessageDateTimeAfter(user, now);
     }
+
+//    @Override
+//    public UserMessage getMessageByShareToken(String token) {
+//        return userMessageRepository.findByShareToken(token);
+//    }
+
+    // ✅ Enable public sharing and generate token
+    @Override
+    public String enableSharing(Long messageId, Long userId) {
+        UserMessage message = userMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (!message.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        String token = UUID.randomUUID().toString();
+        message.setShareToken(token);
+        userMessageRepository.save(message);
+        return token;
+    }
+
+    // ✅ Disable public sharing
+    @Override
+    public void disableSharing(Long messageId, Long userId) {
+        UserMessage message = userMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (!message.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        message.setShareToken(null);
+        userMessageRepository.save(message);
+    }
+
+    @Override
+    public UserMessage getMessageByShareToken(String token) {
+        return userMessageRepository.findByShareToken(token)
+                .orElseThrow(() -> new RuntimeException("Message not found or link invalid"));
+    }
+
 }

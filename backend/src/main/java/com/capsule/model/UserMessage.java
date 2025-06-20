@@ -23,7 +23,10 @@ public class UserMessage {
     private LocalDateTime messageDateTime;
 
     @Column(nullable = false)
-    private int year;  // Required for filtering and sorting
+    private int year;
+
+    @Column(name = "share_token", unique = true)
+    private String shareToken; // ✅ NEW: Token for public sharing
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -32,53 +35,33 @@ public class UserMessage {
 
     public UserMessage() {}
 
-    // Getters and setters
+    // Getters and Setters
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public void setId(Long id) { this.id = id; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getContent() {
-        return content;
-    }
+    public String getContent() { return content; }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+    public void setContent(String content) { this.content = content; }
 
-    public LocalDateTime getMessageDateTime() {
-        return messageDateTime;
-    }
+    public LocalDateTime getMessageDateTime() { return messageDateTime; }
 
-    public void setMessageDateTime(LocalDateTime messageDateTime) {
-        this.messageDateTime = messageDateTime;
-    }
+    public void setMessageDateTime(LocalDateTime messageDateTime) { this.messageDateTime = messageDateTime; }
 
-    public int getYear() {
-        return year;
-    }
+    public int getYear() { return year; }
 
-    public void setYear(int year) {
-        this.year = year;
-    }
+    public void setYear(int year) { this.year = year; }
 
-    public User getUser() {
-        return user;
-    }
+    public String getShareToken() { return shareToken; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public void setShareToken(String shareToken) { this.shareToken = shareToken; }
+
+    public User getUser() { return user; }
+
+    public void setUser(User user) { this.user = user; }
 }

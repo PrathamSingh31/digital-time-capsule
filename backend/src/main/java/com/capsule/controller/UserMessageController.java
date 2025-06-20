@@ -9,13 +9,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/messages")
@@ -28,22 +28,18 @@ public class UserMessageController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    // ✅ Create a new message
     @PostMapping
     public ResponseEntity<?> createMessage(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                            @Valid @RequestBody MessageRequest request) {
         if (userPrincipal == null) {
-            return ResponseEntity.status(401).body("Unauthorized access.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized access.");
         }
 
         try {
             Long userId = userPrincipal.getId();
-            System.out.println("Authenticated user ID: " + userId); // 🔍 Debug user ID
-
             UserMessage message = userMessageService.createMessage(userId, request);
             return ResponseEntity.ok(message);
         } catch (Exception e) {
-            e.printStackTrace(); // 👈 full stack trace
             return ResponseEntity.badRequest().body("Failed to create message: " + e.getMessage());
         }
     }
@@ -56,10 +52,9 @@ public class UserMessageController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<UserMessage>> filterMessages(
-            @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam(required = false) Integer year,
-            @RequestParam(defaultValue = "asc") String sort) {
+    public ResponseEntity<List<UserMessage>> filterMessages(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                            @RequestParam(required = false) Integer year,
+                                                            @RequestParam(defaultValue = "asc") String sort) {
         Long userId = userPrincipal.getId();
         List<UserMessage> filtered = userMessageService.getFilteredMessages(userId, year, sort);
         return ResponseEntity.ok(filtered);
@@ -92,11 +87,9 @@ public class UserMessageController {
     public ResponseEntity<?> importMessages(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                             @RequestBody List<MessageRequest> messages) {
         try {
-            System.out.println("Received messages: " + messages);
             userMessageService.importMessages(userPrincipal.getId(), messages);
             return ResponseEntity.ok("Messages imported successfully.");
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body("Failed to import messages: " + e.getMessage());
         }
     }
@@ -115,7 +108,6 @@ public class UserMessageController {
             String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(messages);
 
             ByteArrayResource resource = new ByteArrayResource(json.getBytes());
-
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=messages.json");
 
@@ -129,6 +121,47 @@ public class UserMessageController {
             return ResponseEntity.internalServerError()
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(new ByteArrayResource(errorBytes));
+        }
+    }
+
+    // ✅ GET SHARED MESSAGE BY TOKEN (Public View)
+    @GetMapping("/share/{token}")
+    public ResponseEntity<?> getSharedMessage(@PathVariable String token) {
+        UserMessage sharedMessage = userMessageService.getMessageByShareToken(token);
+        if (sharedMessage == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid or expired share link.");
+        }
+
+        Map<String, Object> publicMessage = new HashMap<>();
+        publicMessage.put("title", sharedMessage.getTitle());
+        publicMessage.put("content", sharedMessage.getContent());
+        publicMessage.put("date", sharedMessage.getMessageDateTime());
+
+        return ResponseEntity.ok(publicMessage);
+    }
+
+    // ✅ GENERATE OR RETURN EXISTING TOKEN
+    @PutMapping("/{id}/share")
+    public ResponseEntity<String> shareMessage(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            String token = userMessageService.enableSharing(id, userPrincipal.getId());
+            String shareableUrl = "http://localhost:5173/share/" + token;
+            return ResponseEntity.ok(shareableUrl);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to generate share link: " + e.getMessage());
+        }
+    }
+
+    // ✅ DISABLE TOKEN
+    @PutMapping("/{id}/unshare")
+    public ResponseEntity<String> unshareMessage(@PathVariable Long id,
+                                                 @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            userMessageService.disableSharing(id, userPrincipal.getId());
+            return ResponseEntity.ok("Sharing disabled for message ID: " + id);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to disable sharing: " + e.getMessage());
         }
     }
 }
