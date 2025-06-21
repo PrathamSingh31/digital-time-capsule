@@ -21,5 +21,8 @@ public interface UserMessageService {
     String enableSharing(Long messageId, Long userId);         // ✅ NEW
     void disableSharing(Long messageId, Long userId);          // ✅ NEW
     UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile);
+    UserMessage createMessageWithMedia(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile, MultipartFile videoFile);
+    UserMessage updateMessageWithMedia(Long messageId, Long userId, String title, String content, String deliveryDate, MultipartFile image, MultipartFile video);
+
 
 }

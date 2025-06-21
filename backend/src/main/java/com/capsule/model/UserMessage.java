@@ -31,8 +31,12 @@ public class UserMessage {
     @Column(name = "image_url")
     private String imageUrl;
 
+    private String videoUrl;
+
     // inside UserMessage.java
     private String imagePath;
+
+
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -83,4 +87,14 @@ public class UserMessage {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+
+
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl;
+    }
+
 }

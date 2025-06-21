@@ -61,17 +61,33 @@ public class UserMessageController {
         return ResponseEntity.ok(filtered);
     }
 
+    // ✅ Update an existing message (with optional image/video update)
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMessage(@PathVariable Long id,
-                                           @AuthenticationPrincipal UserPrincipal userPrincipal,
-                                           @Valid @RequestBody MessageRequest request) {
+    public ResponseEntity<?> updateMessageWithMedia(@PathVariable Long id,
+                                                    @AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                    @RequestParam("title") String title,
+                                                    @RequestParam("content") String content,
+                                                    @RequestParam("deliveryDate") String deliveryDate,
+                                                    @RequestParam(value = "image", required = false) MultipartFile imageFile,
+                                                    @RequestParam(value = "video", required = false) MultipartFile videoFile) {
         try {
-            UserMessage updated = userMessageService.updateMessage(id, userPrincipal.getId(), request);
-            return ResponseEntity.ok(updated);
+            UserMessage updatedMessage = userMessageService.updateMessageWithMedia(
+                    id,
+                    userPrincipal.getId(),
+                    title,
+                    content,
+                    deliveryDate,
+                    imageFile,
+                    videoFile
+            );
+            return ResponseEntity.ok(updatedMessage);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Error updating message: " + e.getMessage());
         }
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMessage(@PathVariable Long id,

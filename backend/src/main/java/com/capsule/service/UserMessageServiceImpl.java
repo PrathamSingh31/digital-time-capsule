@@ -8,22 +8,15 @@ import com.capsule.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.Optional;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 import java.io.IOException;
+import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.io.File;
+import java.util.*;
 
+import java.util.stream.Collectors;
 
 @Service
 public class UserMessageServiceImpl implements UserMessageService {
@@ -34,12 +27,17 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Autowired
     private UserRepository userRepository;
 
+    private final FileStorageService fileStorageService;
+
+    @Autowired
+    public UserMessageServiceImpl(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
+    }
+
     @Override
     public UserMessage createMessage(Long userId, MessageRequest request) {
-        System.out.println("✅ Creating message for userId: " + userId);
-
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("❌ User not found in DB with ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         UserMessage userMessage = new UserMessage();
         userMessage.setTitle(request.getTitle());
@@ -58,6 +56,67 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         userMessage.setUser(user);
         return userMessageRepository.save(userMessage);
+    }
+
+    @Override
+    public UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserMessage message = new UserMessage();
+        message.setTitle(title);
+        message.setContent(content);
+
+        if (deliveryDate != null && !deliveryDate.isEmpty()) {
+            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setMessageDateTime(date.atStartOfDay());
+            message.setYear(date.getYear());
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            message.setMessageDateTime(now);
+            message.setYear(now.getYear());
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imagePath = fileStorageService.saveImage(imageFile);
+            message.setImageUrl(imagePath);
+        }
+
+        message.setUser(user);
+        return userMessageRepository.save(message);
+    }
+
+    @Override
+    public UserMessage createMessageWithMedia(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile, MultipartFile videoFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserMessage message = new UserMessage();
+        message.setTitle(title);
+        message.setContent(content);
+        message.setUser(user);
+
+        if (deliveryDate != null && !deliveryDate.isEmpty()) {
+            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setMessageDateTime(date.atStartOfDay());
+            message.setYear(date.getYear());
+        } else {
+            LocalDateTime now = LocalDateTime.now();
+            message.setMessageDateTime(now);
+            message.setYear(now.getYear());
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imagePath = fileStorageService.saveImage(imageFile);
+            message.setImageUrl(imagePath);
+        }
+
+        if (videoFile != null && !videoFile.isEmpty()) {
+            String videoPath = fileStorageService.saveVideo(videoFile);
+            message.setVideoUrl(videoPath);
+        }
+
+        return userMessageRepository.save(message);
     }
 
     @Override
@@ -112,7 +171,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public void importMessages(Long userId, List<MessageRequest> messages) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("❌ User not found with ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         for (MessageRequest request : messages) {
             UserMessage message = new UserMessage();
@@ -163,12 +222,12 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.findByUserAndMessageDateTimeAfter(user, now);
     }
 
-//    @Override
-//    public UserMessage getMessageByShareToken(String token) {
-//        return userMessageRepository.findByShareToken(token);
-//    }
+    @Override
+    public UserMessage getMessageByShareToken(String token) {
+        return userMessageRepository.findByShareToken(token)
+                .orElseThrow(() -> new RuntimeException("Message not found or link invalid"));
+    }
 
-    // ✅ Enable public sharing and generate token
     @Override
     public String enableSharing(Long messageId, Long userId) {
         UserMessage message = userMessageRepository.findById(messageId)
@@ -184,7 +243,6 @@ public class UserMessageServiceImpl implements UserMessageService {
         return token;
     }
 
-    // ✅ Disable public sharing
     @Override
     public void disableSharing(Long messageId, Long userId) {
         UserMessage message = userMessageRepository.findById(messageId)
@@ -198,47 +256,41 @@ public class UserMessageServiceImpl implements UserMessageService {
         userMessageRepository.save(message);
     }
 
-    @Override
-    public UserMessage getMessageByShareToken(String token) {
-        return userMessageRepository.findByShareToken(token)
-                .orElseThrow(() -> new RuntimeException("Message not found or link invalid"));
-    }
 
     @Override
-    public UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserMessage updateMessageWithMedia(Long messageId,
+                                              Long userId,
+                                              String title,
+                                              String content,
+                                              String deliveryDate,
+                                              MultipartFile imageFile,
+                                              MultipartFile videoFile) {
+        Optional<UserMessage> optionalMessage = userMessageRepository.findById(messageId);
+        if (optionalMessage.isEmpty()) {
+            throw new RuntimeException("Message not found");
+        }
 
-        UserMessage message = new UserMessage();
+        UserMessage message = optionalMessage.get();
+
+        if (!message.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to update this message");
+        }
+
         message.setTitle(title);
         message.setContent(content);
-
-        if (deliveryDate != null && !deliveryDate.isEmpty()) {
-            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
-            message.setMessageDateTime(date.atStartOfDay());
-            message.setYear(date.getYear());
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            message.setMessageDateTime(now);
-            message.setYear(now.getYear());
-        }
+        message.setMessageDateTime(LocalDate.parse(deliveryDate).atStartOfDay());
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            try {
-                String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-                Path uploadDir = Paths.get("uploads/images").toAbsolutePath().normalize();
-                Files.createDirectories(uploadDir);
-
-                Path filePath = uploadDir.resolve(filename);
-                Files.copy(imageFile.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-
-                message.setImageUrl("/images/" + filename);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to save image file", e);
-            }
+            String imageUrl = fileStorageService.saveImage(imageFile);
+            message.setImageUrl(imageUrl);
         }
 
-        message.setUser(user);
+        if (videoFile != null && !videoFile.isEmpty()) {
+            String videoUrl = fileStorageService.saveVideo(videoFile);
+            message.setVideoUrl(videoUrl);
+        }
+
+
         return userMessageRepository.save(message);
     }
 

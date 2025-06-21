@@ -1,4 +1,5 @@
 package com.capsule.config;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -11,10 +12,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path uploadDir = Paths.get("uploads/images");
-        String uploadPath = uploadDir.toFile().getAbsolutePath();
-
+        // Serve uploaded images from /images/** URL
+        Path imageDir = Paths.get("uploads/images");
+        String imagePath = imageDir.toFile().getAbsolutePath();
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:" + uploadPath + "/");
+                .addResourceLocations("file:" + imagePath + "/");
+
+        // Serve uploaded videos from /videos/** URL
+        Path videoDir = Paths.get("uploads/videos");
+        String videoPath = videoDir.toFile().getAbsolutePath();
+        registry.addResourceHandler("/videos/**")
+                .addResourceLocations("file:" + videoPath + "/");
     }
 }
