@@ -9,7 +9,10 @@ export default function Dashboard() {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const [editedDate, setEditedDate] = useState('');
+  const [editedImage, setEditedImage] = useState(null);
+  const [editedVideo, setEditedVideo] = useState(null);
   const [sharedLinks, setSharedLinks] = useState({});
+  const [revealedMessages, setRevealedMessages] = useState({});
 
   const normalizeMessages = (messages) =>
     messages.map(msg => ({
@@ -53,19 +56,31 @@ export default function Dashboard() {
     setEditedTitle(title);
     setEditedContent(content);
     setEditedDate(deliveryDate);
+    setEditedImage(null);
+    setEditedVideo(null);
   };
 
   const handleUpdate = async () => {
     try {
-      await axiosPrivate.put(`/api/user/messages/${editingMessageId}`, {
-        title: editedTitle,
-        content: editedContent,
-        deliveryDate: editedDate,
+      const formData = new FormData();
+      formData.append('title', editedTitle);
+      formData.append('content', editedContent);
+      formData.append('deliveryDate', editedDate);
+      if (editedImage) formData.append('image', editedImage);
+      if (editedVideo) formData.append('video', editedVideo);
+
+      await axiosPrivate.put(`/api/user/messages/${editingMessageId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+
       setEditingMessageId(null);
       setEditedTitle('');
       setEditedContent('');
       setEditedDate('');
+      setEditedImage(null);
+      setEditedVideo(null);
       fetchMessages();
     } catch (error) {
       console.error('Error updating message:', error);
@@ -92,101 +107,162 @@ export default function Dashboard() {
   return (
     <div className={styles.container}>
       <h2 className={styles.heading}>📬 Your Messages</h2>
-
       <FilterMessages onMessagesUpdate={handleFilterUpdate} />
 
       {Array.isArray(messages) && messages.length > 0 ? (
         <ul className={styles.messageList}>
-          {messages.map((msg) => (
-            <li key={msg.id} className={styles.messageCard}>
-              {editingMessageId === msg.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    className={styles.input}
-                    placeholder="Title"
-                  />
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className={styles.textarea}
-                    placeholder="Content"
-                  />
-                  <input
-                    type="date"
-                    value={editedDate}
-                    onChange={(e) => setEditedDate(e.target.value)}
-                    className={styles.input}
-                  />
-                  <button onClick={handleUpdate} className={styles.saveButton}>
-                    💾 Save
-                  </button>
-                </>
-              ) : (
-                <>
-                  <h3 className={styles.title}>{msg.title}</h3>
-                  <p className={styles.content}>{msg.content}</p>
+          {messages.map((msg) => {
+            const isFuture = new Date(msg.messageDateTime) > new Date();
+            const isRevealed = revealedMessages[msg.id];
 
-                  {msg.imageUrl && (
-                    <img
-                      src={`http://localhost:8080${msg.imageUrl}`}
-                      alt="Message Visual"
-                      className={styles.image}
+            return (
+              <li key={msg.id} className={styles.messageCard}>
+                {editingMessageId === msg.id ? (
+                  <>
+                    <input
+                      type="text"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      className={styles.input}
+                      placeholder="Title"
                     />
-                  )}
+                    <textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className={styles.textarea}
+                      placeholder="Content"
+                    />
+                    <input
+                      type="date"
+                      value={editedDate}
+                      onChange={(e) => setEditedDate(e.target.value)}
+                      className={styles.input}
+                    />
 
-                  <p className={styles.date}>
-                    📅 Deliver on:{' '}
-                    {msg.messageDateTime
-                      ? new Date(msg.messageDateTime).toLocaleDateString()
-                      : 'N/A'}
-                  </p>
+                    <label>Update Image:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setEditedImage(e.target.files[0])}
+                      className={styles.input}
+                    />
+                    {editedImage && (
+                      <img
+                        src={URL.createObjectURL(editedImage)}
+                        alt="New Preview"
+                        className={styles.image}
+                      />
+                    )}
 
-                  <div className={styles.actions}>
-                    <button
-                      onClick={() =>
-                        handleEdit(
-                          msg.id,
-                          msg.title,
-                          msg.content,
-                          msg.deliveryDate
-                        )
-                      }
-                      className={styles.editButton}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(msg.id)}
-                      className={styles.deleteButton}
-                    >
-                      🗑️ Delete
-                    </button>
-                    <button
-                      onClick={() => handleShare(msg.id)}
-                      className={styles.shareButton}
-                    >
-                      🔗 Share
-                    </button>
-                  </div>
+                    <label>Update Video:</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => setEditedVideo(e.target.files[0])}
+                      className={styles.input}
+                    />
+                    {editedVideo && (
+                      <video controls className={styles.previewVideo}>
+                        <source
+                          src={URL.createObjectURL(editedVideo)}
+                          type={editedVideo.type}
+                        />
+                      </video>
+                    )}
 
-                  {sharedLinks[msg.id] && (
-                    <p className={styles.sharedLink}>
-                      <a
-                        href={sharedLinks[msg.id]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        📎 View Shared Link
-                      </a>
+                    <button onClick={handleUpdate} className={styles.saveButton}>
+                      💾 Save
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className={styles.title}>{msg.title}</h3>
+
+                    {isFuture && !isRevealed ? (
+                      <div className={styles.lockedMessage}>
+                        <p className={styles.lockedText}>
+                          🔒 This message is locked until {new Date(msg.messageDateTime).toLocaleDateString()}
+                        </p>
+                        <button
+                          className={styles.revealButton}
+                          onClick={() =>
+                            setRevealedMessages((prev) => ({ ...prev, [msg.id]: true }))
+                          }
+                        >
+                          🔓 Reveal Now
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className={styles.content}>{msg.content}</p>
+
+                        {msg.imageUrl && (
+                          <img
+                            src={`http://localhost:8080${msg.imageUrl}`}
+                            alt="Message Visual"
+                            className={styles.image}
+                          />
+                        )}
+
+                        {msg.videoUrl && (
+                          <video controls className={styles.previewVideo}>
+                            <source src={`http://localhost:8080${msg.videoUrl}`} type="video/mp4" />
+                          </video>
+                        )}
+                      </>
+                    )}
+
+                    <p className={styles.date}>
+                      📅 Deliver on:{' '}
+                      {msg.messageDateTime
+                        ? new Date(msg.messageDateTime).toLocaleDateString()
+                        : 'N/A'}
                     </p>
-                  )}
-                </>
-              )}
-            </li>
-          ))}
+
+                    <div className={styles.actions}>
+                      <button
+                        onClick={() =>
+                          handleEdit(
+                            msg.id,
+                            msg.title,
+                            msg.content,
+                            msg.deliveryDate
+                          )
+                        }
+                        className={styles.editButton}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(msg.id)}
+                        className={styles.deleteButton}
+                      >
+                        🗑️ Delete
+                      </button>
+                      <button
+                        onClick={() => handleShare(msg.id)}
+                        className={styles.shareButton}
+                      >
+                        🔗 Share
+                      </button>
+                    </div>
+
+                    {sharedLinks[msg.id] && (
+                      <p className={styles.sharedLink}>
+                        <a
+                          href={sharedLinks[msg.id]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          📎 View Shared Link
+                        </a>
+                      </p>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
         </ul>
       ) : (
         <p className={styles.empty}>No messages yet.</p>

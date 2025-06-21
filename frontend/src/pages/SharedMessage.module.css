@@ -75,3 +75,106 @@
 .loading {
   text-align: center;
 }
+
+
+.video {
+  width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.lockedMessage {
+  text-align: center;
+  padding: 16px;
+  border: 2px dashed #bbb;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  margin: 20px 0;
+}
+
+.lockedText {
+  font-size: 1rem;
+  color: #555;
+}
+
+.revealButton {
+  margin-top: 10px;
+  padding: 8px 14px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.revealButton:hover {
+  background-color: #0056b3;
+}
+
+
+.lockedMessage {
+  text-align: center;
+  padding: 16px;
+  border: 2px dashed #bbb;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+  margin: 20px 0;
+}
+
+.lockedText {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.revealButton {
+  padding: 10px 18px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.revealButton:hover {
+  background-color: #0056b3;
+}
+
+.blurredPreview {
+  margin-top: 20px;
+  pointer-events: none;
+  opacity: 0.7;
+  filter: blur(6px);
+}
+
+.blurredText {
+  font-size: 1rem;
+  padding: 10px;
+  color: #555;
+  font-style: italic;
+}
+
+.blurred {
+  filter: blur(6px);
+  opacity: 0.8;
+}
+
+.revealedContent {
+  animation: fadeIn 1s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

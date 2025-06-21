@@ -2,118 +2,97 @@ import React, { useState } from "react";
 import axiosPrivate from "../api/axiosPrivate";
 import styles from "./CreateMessage.module.css";
 
-const CreateMessage = () => {
+export default function CreateMessage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [image, setImage] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const isFutureOrTodayDate = (date) => {
-    const today = new Date().toISOString().split("T")[0];
-    return date >= today;
-  };
+  const [imageFile, setImageFile] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMessage("");
-    setErrorMessage("");
-    setLoading(true);
-
-    const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
-
-    if (!trimmedTitle || !trimmedContent || !deliveryDate) {
-      setErrorMessage("❌ All fields are required.");
-      setLoading(false);
-      return;
-    }
-
-    if (!isFutureOrTodayDate(deliveryDate)) {
-      setErrorMessage("❌ Delivery date must be today or a future date.");
-      setLoading(false);
-      return;
-    }
+    setMessage("");
+    setError("");
 
     try {
       const formData = new FormData();
-      formData.append("title", trimmedTitle);
-      formData.append("content", trimmedContent);
+      formData.append("title", title);
+      formData.append("content", content);
       formData.append("deliveryDate", deliveryDate);
-      if (image) {
-        formData.append("image", image);
-      }
+      if (imageFile) formData.append("image", imageFile);
+      if (videoFile) formData.append("video", videoFile);
 
-      const response = await axiosPrivate.post("/api/user/messages/upload-image", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axiosPrivate.post(
+        "/api/user/messages/upload-media",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
 
-
-      setSuccessMessage("✅ Message saved successfully!");
-      setTitle("");
-      setContent("");
-      setDeliveryDate("");
-      setImage(null);
-      console.log("Message saved:", response.data);
-    } catch (error) {
-      console.error("Error saving message:", error);
-     const serverMessage =
-       typeof error?.response?.data === "string"
-         ? error.response.data
-         : error?.response?.data?.message || "❌ Failed to save message. Please try again.";
-     setErrorMessage(serverMessage);
-
-    } finally {
-      setLoading(false);
+      setMessage("Message saved successfully!");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err?.response?.data || "Failed to create message."
+      );
     }
   };
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.heading}>Create Time Capsule Message</h2>
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <h2>Create a New Message</h2>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className={styles.input}
           required
         />
+
         <textarea
           placeholder="Message Content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className={styles.textarea}
-          rows={4}
           required
         />
+
         <input
           type="date"
           value={deliveryDate}
           onChange={(e) => setDeliveryDate(e.target.value)}
-          className={styles.input}
           required
         />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImage(e.target.files[0])}
-          className={styles.input}
-        />
-        <button type="submit" className={styles.button} disabled={loading}>
-          {loading ? "Saving..." : "Save Message"}
-        </button>
+
+        <label>Attach Image:</label>
+        <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
+        {imageFile && (
+          <img
+            src={URL.createObjectURL(imageFile)}
+            alt="Preview"
+            className={styles.preview}
+          />
+        )}
+
+        <label>Attach Video:</label>
+        <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files[0])} />
+        {videoFile && (
+          <video controls className={styles.preview}>
+            <source src={URL.createObjectURL(videoFile)} type={videoFile.type} />
+            Your browser does not support the video tag.
+          </video>
+        )}
+
+        <button type="submit">Save Message</button>
       </form>
 
-      {successMessage && <p className={styles.success}>{successMessage}</p>}
-      {errorMessage && <p className={styles.error}>{errorMessage}</p>}
+      {message && <p className={styles.success}>{message}</p>}
+      {error && <p className={styles.error}>{error}</p>}
     </div>
   );
-};
-
-export default CreateMessage;
+}
