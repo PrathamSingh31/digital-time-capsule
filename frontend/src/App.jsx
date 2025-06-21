@@ -11,7 +11,8 @@ import ImportMessages from './components/ImportMessages';
 import ExportMessages from './components/ExportMessages';
 import ScheduledMessages from './components/ScheduledMessages';
 import SharedMessage from './pages/SharedMessage';
-
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
@@ -25,6 +26,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/share/:token" element={<SharedMessage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* ✅ Protected Routes with Layout/Navbar */}
         <Route
@@ -41,6 +44,7 @@ export default function App() {
           <Route path="import" element={<ImportMessages />} />
           <Route path="export" element={<ExportMessages />} />
           <Route path="scheduled" element={<ScheduledMessages />} />
+
         </Route>
 
         {/* ✅ Catch-all fallback */}
