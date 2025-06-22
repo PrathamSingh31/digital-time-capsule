@@ -1,4 +1,4 @@
-﻿# Digital Time Capsule
+
 # 📦 Digital Time Capsule
 
 A full-stack web application that lets users write, store, and share time-locked messages with optional images or videos — to be delivered or revealed in the future. Users can create memories, schedule automatic delivery, and even receive email notifications when messages unlock!
