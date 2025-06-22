@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -54,12 +53,24 @@ public class UserMessageServiceImpl implements UserMessageService {
             userMessage.setYear(now.getYear());
         }
 
+        String unlockDateStr = request.getUnlockDate();
+        if (unlockDateStr != null && !unlockDateStr.isEmpty()) {
+            LocalDate unlockDate = LocalDate.parse(unlockDateStr);
+            userMessage.setUnlockDate(unlockDate.atStartOfDay());
+        }
+
         userMessage.setUser(user);
         return userMessageRepository.save(userMessage);
     }
 
     @Override
-    public UserMessage createMessageWithImage(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile) {
+    public UserMessage createMessageWithImage(Long userId,
+                                              String title,
+                                              String content,
+                                              String deliveryDate,
+                                              String unlockDate,
+                                              MultipartFile imageFile) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -67,6 +78,7 @@ public class UserMessageServiceImpl implements UserMessageService {
         message.setTitle(title);
         message.setContent(content);
 
+        // Set deliveryDate
         if (deliveryDate != null && !deliveryDate.isEmpty()) {
             LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
             message.setMessageDateTime(date.atStartOfDay());
@@ -77,6 +89,13 @@ public class UserMessageServiceImpl implements UserMessageService {
             message.setYear(now.getYear());
         }
 
+        // Set unlockDate
+        if (unlockDate != null && !unlockDate.isEmpty()) {
+            LocalDate unlock = LocalDate.parse(unlockDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setUnlockDate(unlock.atStartOfDay());
+        }
+
+        // Save image
         if (imageFile != null && !imageFile.isEmpty()) {
             String imagePath = fileStorageService.saveImage(imageFile);
             message.setImageUrl(imagePath);
@@ -86,24 +105,28 @@ public class UserMessageServiceImpl implements UserMessageService {
         return userMessageRepository.save(message);
     }
 
-    @Override
-    public UserMessage createMessageWithMedia(Long userId, String title, String content, String deliveryDate, MultipartFile imageFile, MultipartFile videoFile) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
+    @Override
+    public UserMessage createMessageWithMedia(Long userId,
+                                              String title,
+                                              String content,
+                                              String deliveryDate,
+                                              String unlockDate,
+                                              MultipartFile imageFile,
+                                              MultipartFile videoFile) {
         UserMessage message = new UserMessage();
         message.setTitle(title);
         message.setContent(content);
-        message.setUser(user);
 
         if (deliveryDate != null && !deliveryDate.isEmpty()) {
-            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
-            message.setMessageDateTime(date.atStartOfDay());
-            message.setYear(date.getYear());
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            message.setMessageDateTime(now);
-            message.setYear(now.getYear());
+            LocalDate delivery = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setMessageDateTime(delivery.atStartOfDay());
+            message.setYear(delivery.getYear());
+        }
+
+        if (unlockDate != null && !unlockDate.isEmpty()) {
+            LocalDate unlock = LocalDate.parse(unlockDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            message.setUnlockDate(unlock.atStartOfDay());
         }
 
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -116,8 +139,12 @@ public class UserMessageServiceImpl implements UserMessageService {
             message.setVideoUrl(videoPath);
         }
 
+        message.setUser(userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found")));
+
         return userMessageRepository.save(message);
     }
+
 
     @Override
     public List<UserMessage> getMessagesByUserId(Long userId) {
@@ -133,6 +160,11 @@ public class UserMessageServiceImpl implements UserMessageService {
             throw new RuntimeException("Unauthorized");
         }
 
+        // ✅ Block editing if unlockDate is in the future
+        if (existingMessage.getUnlockDate() != null && existingMessage.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("Message is locked until: " + existingMessage.getUnlockDate());
+        }
+
         existingMessage.setTitle(request.getTitle());
         existingMessage.setContent(request.getContent());
 
@@ -143,8 +175,16 @@ public class UserMessageServiceImpl implements UserMessageService {
             existingMessage.setYear(deliveryDate.getYear());
         }
 
+        String unlockDateStr = request.getUnlockDate();
+        if (unlockDateStr != null && !unlockDateStr.isEmpty()) {
+            LocalDate unlockDate = LocalDate.parse(unlockDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+            existingMessage.setUnlockDate(unlockDate.atStartOfDay());
+        }
+
         return userMessageRepository.save(existingMessage);
     }
+
+
 
     @Override
     public void deleteMessage(Long messageId, Long userId) {
@@ -153,6 +193,10 @@ public class UserMessageServiceImpl implements UserMessageService {
 
         if (!existingMessage.getUser().getId().equals(userId)) {
             throw new RuntimeException("Unauthorized");
+        }
+
+        if (existingMessage.getUnlockDate() != null && existingMessage.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("Cannot delete. Message is locked until: " + existingMessage.getUnlockDate());
         }
 
         userMessageRepository.delete(existingMessage);
@@ -166,6 +210,18 @@ public class UserMessageServiceImpl implements UserMessageService {
     @Override
     public void importMessages(Long userId, MultipartFile file, String fileType) throws IOException {
         throw new UnsupportedOperationException("File-based import not implemented yet.");
+    }
+
+    @Override
+    public UserMessage getMessageByIdAndUsername(Long messageId, String username) {
+        UserMessage message = userMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (!message.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized to view this message");
+        }
+
+        return message;
     }
 
     @Override
@@ -256,43 +312,51 @@ public class UserMessageServiceImpl implements UserMessageService {
         userMessageRepository.save(message);
     }
 
-
     @Override
-    public UserMessage updateMessageWithMedia(Long messageId,
-                                              Long userId,
-                                              String title,
-                                              String content,
-                                              String deliveryDate,
-                                              MultipartFile imageFile,
-                                              MultipartFile videoFile) {
-        Optional<UserMessage> optionalMessage = userMessageRepository.findById(messageId);
-        if (optionalMessage.isEmpty()) {
-            throw new RuntimeException("Message not found");
-        }
+    public UserMessage updateMessageWithMedia(Long messageId, Long userId, String title, String content,
+                                              String deliveryDate, String unlockDate,
+                                              MultipartFile imageFile, MultipartFile videoFile) {
 
-        UserMessage message = optionalMessage.get();
+        UserMessage userMessage = userMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
 
-        if (!message.getUser().getId().equals(userId)) {
+        if (!userMessage.getUser().getId().equals(userId)) {
             throw new RuntimeException("Unauthorized to update this message");
         }
 
-        message.setTitle(title);
-        message.setContent(content);
-        message.setMessageDateTime(LocalDate.parse(deliveryDate).atStartOfDay());
+        // ✅ Block editing if unlockDate is in the future
+        if (userMessage.getUnlockDate() != null && userMessage.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new RuntimeException("This message is locked until: " + userMessage.getUnlockDate());
+        }
+
+        userMessage.setTitle(title);
+        userMessage.setContent(content);
+
+        if (deliveryDate != null && !deliveryDate.isEmpty()) {
+            LocalDate date = LocalDate.parse(deliveryDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            userMessage.setMessageDateTime(date.atStartOfDay());
+            userMessage.setYear(date.getYear());
+        }
+
+        // ✅ Parse and set unlockDate (yyyy-MM-dd)
+        if (unlockDate != null && !unlockDate.isEmpty()) {
+            LocalDate unlock = LocalDate.parse(unlockDate, DateTimeFormatter.ISO_LOCAL_DATE);
+            userMessage.setUnlockDate(unlock.atStartOfDay());
+        }
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = fileStorageService.saveImage(imageFile);
-            message.setImageUrl(imageUrl);
+            String imagePath = fileStorageService.saveImage(imageFile);
+            userMessage.setImageUrl(imagePath);
         }
 
         if (videoFile != null && !videoFile.isEmpty()) {
-            String videoUrl = fileStorageService.saveVideo(videoFile);
-            message.setVideoUrl(videoUrl);
+            String videoPath = fileStorageService.saveVideo(videoFile);
+            userMessage.setVideoUrl(videoPath);
         }
 
-
-        return userMessageRepository.save(message);
+        return userMessageRepository.save(userMessage);
     }
+
 
 
 }

@@ -10,42 +10,43 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    private final Path imageStorageLocation = Paths.get("uploads/images").toAbsolutePath().normalize();
-    private final Path videoStorageLocation = Paths.get("uploads/videos").toAbsolutePath().normalize();
+    private final Path imageStorageLocation;
+    private final Path videoStorageLocation;
 
     public FileStorageService() {
+        this.imageStorageLocation = Paths.get("uploads/images").toAbsolutePath().normalize();
+        this.videoStorageLocation = Paths.get("uploads/videos").toAbsolutePath().normalize();
+
         try {
             Files.createDirectories(imageStorageLocation);
             Files.createDirectories(videoStorageLocation);
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             throw new RuntimeException("Could not create upload directories", ex);
         }
     }
 
     public String saveImage(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Image file is empty or null");
-        }
-        return storeFile(file, imageStorageLocation, "image");
+        return saveFile(file, imageStorageLocation, "images");
     }
 
     public String saveVideo(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Video file is empty or null");
-        }
-        return storeFile(file, videoStorageLocation, "video");
+        return saveFile(file, videoStorageLocation, "videos");
     }
 
-    private String storeFile(MultipartFile file, Path storageLocation, String type) {
-        String originalFileName = file.getOriginalFilename();
-        String fileName = UUID.randomUUID() + "_" + originalFileName;
+    private String saveFile(MultipartFile file, Path storageLocation, String folderName) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Provided file is null or empty");
+        }
+
+        String originalFileName = Path.of(file.getOriginalFilename()).getFileName().toString();
+        String uniqueFileName = UUID.randomUUID() + "_" + originalFileName;
 
         try {
-            Path targetLocation = storageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return "/" + type + "s/" + fileName;
+            Path targetPath = storageLocation.resolve(uniqueFileName);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            return "/" + folderName + "/" + uniqueFileName;
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
+            throw new RuntimeException("Failed to store file " + uniqueFileName, ex);
         }
     }
 }

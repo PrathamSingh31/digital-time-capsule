@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * DTO representing a message input from the client.
- * `deliveryDate` must be in the format yyyy-MM-dd.
+ * `deliveryDate` and `unlockDate` must be in the format yyyy-MM-dd.
  */
 public class MessageRequest {
 
@@ -22,13 +22,16 @@ public class MessageRequest {
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Delivery date must be in yyyy-MM-dd format")
     private String deliveryDate;
 
-    public MessageRequest() {
-    }
+    @Pattern(regexp = "^$|^\\d{4}-\\d{2}-\\d{2}$", message = "Unlock date must be in yyyy-MM-dd format")
+    private String unlockDate; // Optional
 
-    public MessageRequest(String title, String content, String deliveryDate) {
+    public MessageRequest() {}
+
+    public MessageRequest(String title, String content, String deliveryDate, String unlockDate) {
         this.title = title;
         this.content = content;
         this.deliveryDate = deliveryDate;
+        this.unlockDate = unlockDate;
     }
 
     public String getTitle() {
@@ -55,12 +58,21 @@ public class MessageRequest {
         this.deliveryDate = deliveryDate;
     }
 
+    public String getUnlockDate() {
+        return unlockDate;
+    }
+
+    public void setUnlockDate(String unlockDate) {
+        this.unlockDate = unlockDate;
+    }
+
     @Override
     public String toString() {
         return "MessageRequest{" +
                 "title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", deliveryDate='" + deliveryDate + '\'' +
+                ", unlockDate='" + unlockDate + '\'' +
                 '}';
     }
 }

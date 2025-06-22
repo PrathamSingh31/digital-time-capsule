@@ -24,7 +24,7 @@ public class ScheduledMessageSenderService {
      * This method runs every day at 9:00 AM server time.
      * It sends reminder emails for messages scheduled to be delivered today.
      */
-    @Scheduled(cron = "0 0 9 * * *") // ⏰ Every day at 9 AM
+    @Scheduled(cron = "0 0 9 * * *")// ⏰ Every day at 9 AM
     @Transactional
     public void sendScheduledMessages() {
         LocalDate today = LocalDate.now();
@@ -44,6 +44,9 @@ public class ScheduledMessageSenderService {
                     + "— From your Digital Time Capsule 💌";
 
             emailService.sendEmail(to, subject, body);
+            System.out.println("🕐 Scheduler triggered at: " + LocalDate.now());
+            System.out.println("📬 Messages found: " + messagesToSend.size());
+
         }
     }
 }

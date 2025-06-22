@@ -48,6 +48,8 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
+                                "/api/auth/request-reset",      // ✅ Allow requesting reset token
+                                "/api/auth/reset-password",
                                 "/api/user/messages/share/**"
                         ).permitAll()
 

@@ -33,11 +33,10 @@ public class UserMessage {
 
     private String videoUrl;
 
-    // inside UserMessage.java
     private String imagePath;
 
-
-
+    @Column(name = "unlock_date")
+    private LocalDateTime unlockDate; // ✅ NEW: Locking mechanism
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -49,52 +48,35 @@ public class UserMessage {
     // Getters and Setters
 
     public Long getId() { return id; }
-
     public void setId(Long id) { this.id = id; }
 
     public String getTitle() { return title; }
-
     public void setTitle(String title) { this.title = title; }
 
     public String getContent() { return content; }
-
     public void setContent(String content) { this.content = content; }
 
     public LocalDateTime getMessageDateTime() { return messageDateTime; }
-
     public void setMessageDateTime(LocalDateTime messageDateTime) { this.messageDateTime = messageDateTime; }
 
     public int getYear() { return year; }
-
     public void setYear(int year) { this.year = year; }
 
     public String getShareToken() { return shareToken; }
-
     public void setShareToken(String shareToken) { this.shareToken = shareToken; }
 
     public User getUser() { return user; }
-
     public void setUser(User user) { this.user = user; }
 
     public String getImageUrl() { return imageUrl; }
-
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public String getImagePath() {
-        return imagePath;
-    }
+    public String getImagePath() { return imagePath; }
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
 
-
-    public String getVideoUrl() {
-        return videoUrl;
-    }
-
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
-
+    public LocalDateTime getUnlockDate() { return unlockDate; }
+    public void setUnlockDate(LocalDateTime unlockDate) { this.unlockDate = unlockDate; }
 }
