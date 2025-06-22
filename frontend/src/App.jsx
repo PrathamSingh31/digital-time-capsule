@@ -13,6 +13,8 @@ import ScheduledMessages from './components/ScheduledMessages';
 import SharedMessage from './pages/SharedMessage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import MessageList from './components/MessageList';
+
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
@@ -45,6 +47,8 @@ export default function App() {
           <Route path="export" element={<ExportMessages />} />
           <Route path="scheduled" element={<ScheduledMessages />} />
 
+          {/* ✅ Place MessageList under /dashboard or add a new route */}
+          <Route path="messages" element={<MessageList />} />
         </Route>
 
         {/* ✅ Catch-all fallback */}

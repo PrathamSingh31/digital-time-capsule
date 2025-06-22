@@ -1,0 +1,31 @@
+.container {
+  padding: 20px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview {
+  max-width: 300px;
+  margin-top: 10px;
+}
+
+.success {
+  color: green;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.lockedWarning {
+  color: #b00;
+  font-weight: bold;
+  font-style: italic;
+  margin: 1rem 0;
+}

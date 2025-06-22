@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axiosAuth from '../api/axiosAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styles from './Login.module.css';
 
 export default function Login() {
@@ -31,7 +31,7 @@ export default function Login() {
 
   return (
     <div className={styles.loginContainer}>
-      <h2 className={styles.heading}>Login</h2>
+      <h2 className={styles.heading}>🔐 Login</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
         <input
           type="text"
@@ -54,6 +54,16 @@ export default function Login() {
         <button type="submit" className={styles.button}>
           Login
         </button>
+
+        <div className={styles.links}>
+          <Link to="/forgot-password" className={styles.link}>
+            Forgot Password?
+          </Link>
+          <span className={styles.separator}>|</span>
+          <Link to="/register" className={styles.link}>
+            Register
+          </Link>
+        </div>
       </form>
     </div>
   );

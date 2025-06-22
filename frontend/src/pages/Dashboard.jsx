@@ -3,6 +3,8 @@ import axiosPrivate from '../api/axiosPrivate';
 import styles from './Dashboard.module.css';
 import FilterMessages from "../components/FilterMessages";
 
+// ...imports remain the same
+
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
   const [editingMessageId, setEditingMessageId] = useState(null);
@@ -12,14 +14,14 @@ export default function Dashboard() {
   const [editedImage, setEditedImage] = useState(null);
   const [editedVideo, setEditedVideo] = useState(null);
   const [sharedLinks, setSharedLinks] = useState({});
+  const [editedUnlockDate, setEditedUnlockDate] = useState('');
   const [revealedMessages, setRevealedMessages] = useState({});
 
   const normalizeMessages = (messages) =>
     messages.map(msg => ({
       ...msg,
-      deliveryDate: msg.messageDateTime
-        ? msg.messageDateTime.split('T')[0]
-        : '',
+      deliveryDate: msg.messageDateTime?.split('T')[0] || '',
+      unlockDate: msg.unlockDate?.split('T')[0] || ''
     }));
 
   const fetchMessages = async () => {
@@ -38,26 +40,17 @@ export default function Dashboard() {
   };
 
   const handleFilterUpdate = (filteredMessages) => {
-    setMessages(normalizeMessages(filteredMessages));
+    setMessages(filteredMessages);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
-    try {
-      await axiosPrivate.delete(`/api/user/messages/${id}`);
-      setMessages((prev) => prev.filter((msg) => msg.id !== id));
-    } catch (error) {
-      console.error('Error deleting message:', error);
-    }
-  };
-
-  const handleEdit = (id, title, content, deliveryDate) => {
+  const handleEdit = (id, title, content, deliveryDate, unlockDate) => {
     setEditingMessageId(id);
     setEditedTitle(title);
     setEditedContent(content);
     setEditedDate(deliveryDate);
     setEditedImage(null);
     setEditedVideo(null);
+    setEditedUnlockDate(unlockDate || '');
   };
 
   const handleUpdate = async () => {
@@ -68,6 +61,10 @@ export default function Dashboard() {
       formData.append('deliveryDate', editedDate);
       if (editedImage) formData.append('image', editedImage);
       if (editedVideo) formData.append('video', editedVideo);
+      if (editedUnlockDate) {
+        const formatted = new Date(editedUnlockDate).toISOString().split('T')[0];
+        formData.append('unlockDate', formatted);
+      }
 
       await axiosPrivate.put(`/api/user/messages/${editingMessageId}`, formData, {
         headers: {
@@ -76,26 +73,29 @@ export default function Dashboard() {
       });
 
       setEditingMessageId(null);
-      setEditedTitle('');
-      setEditedContent('');
-      setEditedDate('');
-      setEditedImage(null);
-      setEditedVideo(null);
       fetchMessages();
     } catch (error) {
       console.error('Error updating message:', error);
     }
   };
 
-  const handleShare = async (messageId) => {
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
     try {
-      const response = await axiosPrivate.put(`/api/user/messages/${messageId}/share`);
-      const shareUrl = response.data;
-      await navigator.clipboard.writeText(shareUrl);
-      setSharedLinks(prev => ({ ...prev, [messageId]: shareUrl }));
-      alert(`✅ Shareable link copied to clipboard:\n${shareUrl}`);
+      await axiosPrivate.delete(`/api/user/messages/${id}`);
+      setMessages(prev => prev.filter(msg => msg.id !== id));
     } catch (error) {
-      console.error("Error sharing message:", error);
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const handleShare = async (id) => {
+    try {
+      const res = await axiosPrivate.put(`/api/user/messages/${id}/share`);
+      await navigator.clipboard.writeText(res.data);
+      setSharedLinks(prev => ({ ...prev, [id]: res.data }));
+      alert(`✅ Shareable link copied to clipboard:\n${res.data}`);
+    } catch (e) {
       alert("❌ Failed to generate share link.");
     }
   };
@@ -109,10 +109,16 @@ export default function Dashboard() {
       <h2 className={styles.heading}>📬 Your Messages</h2>
       <FilterMessages onMessagesUpdate={handleFilterUpdate} />
 
-      {Array.isArray(messages) && messages.length > 0 ? (
+      {messages.length > 0 ? (
         <ul className={styles.messageList}>
           {messages.map((msg) => {
-            const isFuture = new Date(msg.messageDateTime) > new Date();
+            const now = new Date();
+            const deliveryDate = new Date(msg.messageDateTime);
+            const unlockDate = msg.unlockDate ? new Date(msg.unlockDate) : null;
+
+            const isVisible = deliveryDate <= now;
+            const isLocked = !isVisible;
+            const canEdit = !unlockDate || unlockDate <= now;
             const isRevealed = revealedMessages[msg.id];
 
             return (
@@ -138,38 +144,24 @@ export default function Dashboard() {
                       onChange={(e) => setEditedDate(e.target.value)}
                       className={styles.input}
                     />
-
-                    <label>Update Image:</label>
+                    <input
+                      type="date"
+                      value={editedUnlockDate}
+                      onChange={(e) => setEditedUnlockDate(e.target.value)}
+                      className={styles.input}
+                    />
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => setEditedImage(e.target.files[0])}
                       className={styles.input}
                     />
-                    {editedImage && (
-                      <img
-                        src={URL.createObjectURL(editedImage)}
-                        alt="New Preview"
-                        className={styles.image}
-                      />
-                    )}
-
-                    <label>Update Video:</label>
                     <input
                       type="file"
                       accept="video/*"
                       onChange={(e) => setEditedVideo(e.target.files[0])}
                       className={styles.input}
                     />
-                    {editedVideo && (
-                      <video controls className={styles.previewVideo}>
-                        <source
-                          src={URL.createObjectURL(editedVideo)}
-                          type={editedVideo.type}
-                        />
-                      </video>
-                    )}
-
                     <button onClick={handleUpdate} className={styles.saveButton}>
                       💾 Save
                     </button>
@@ -178,67 +170,77 @@ export default function Dashboard() {
                   <>
                     <h3 className={styles.title}>{msg.title}</h3>
 
-                    {isFuture && !isRevealed ? (
+                    {isLocked && !isRevealed ? (
                       <div className={styles.lockedMessage}>
                         <p className={styles.lockedText}>
-                          🔒 This message is locked until {new Date(msg.messageDateTime).toLocaleDateString()}
+                          🔒 This message is locked until {deliveryDate.toLocaleDateString()}
                         </p>
-                        <button
-                          className={styles.revealButton}
-                          onClick={() =>
-                            setRevealedMessages((prev) => ({ ...prev, [msg.id]: true }))
-                          }
-                        >
-                          🔓 Reveal Now
-                        </button>
+                        {isVisible && (
+                          <button
+                            className={styles.revealButton}
+                            onClick={() =>
+                              setRevealedMessages(prev => ({ ...prev, [msg.id]: true }))
+                            }
+                          >
+                            🔓 Reveal Now
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <>
                         <p className={styles.content}>{msg.content}</p>
-
                         {msg.imageUrl && (
                           <img
                             src={`http://localhost:8080${msg.imageUrl}`}
-                            alt="Message Visual"
+                            alt="Visual"
                             className={styles.image}
                           />
                         )}
-
                         {msg.videoUrl && (
                           <video controls className={styles.previewVideo}>
-                            <source src={`http://localhost:8080${msg.videoUrl}`} type="video/mp4" />
+                            <source
+                              src={`http://localhost:8080${msg.videoUrl}`}
+                              type="video/mp4"
+                            />
                           </video>
                         )}
                       </>
                     )}
 
-                    <p className={styles.date}>
-                      📅 Deliver on:{' '}
-                      {msg.messageDateTime
-                        ? new Date(msg.messageDateTime).toLocaleDateString()
-                        : 'N/A'}
-                    </p>
+                    <p className={styles.date}>📅 Deliver on: {deliveryDate.toLocaleDateString()}</p>
+                    {msg.unlockDate && (
+                      <p className={styles.date}>🔓 Unlock on: {new Date(msg.unlockDate).toLocaleDateString()}</p>
+                    )}
 
                     <div className={styles.actions}>
-                      <button
-                        onClick={() =>
-                          handleEdit(
-                            msg.id,
-                            msg.title,
-                            msg.content,
-                            msg.deliveryDate
-                          )
-                        }
-                        className={styles.editButton}
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(msg.id)}
-                        className={styles.deleteButton}
-                      >
-                        🗑️ Delete
-                      </button>
+                      {canEdit ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleEdit(
+                                msg.id,
+                                msg.title,
+                                msg.content,
+                                msg.deliveryDate,
+                                msg.unlockDate
+                              )
+                            }
+                            className={styles.editButton}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(msg.id)}
+                            className={styles.deleteButton}
+                          >
+                            🗑️ Delete
+                          </button>
+                        </>
+                      ) : (
+                        <p className={styles.lockedText}>
+                          🔒 Editing disabled until {new Date(msg.unlockDate).toLocaleDateString()}
+                        </p>
+                      )}
                       <button
                         onClick={() => handleShare(msg.id)}
                         className={styles.shareButton}
@@ -249,11 +251,7 @@ export default function Dashboard() {
 
                     {sharedLinks[msg.id] && (
                       <p className={styles.sharedLink}>
-                        <a
-                          href={sharedLinks[msg.id]}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <a href={sharedLinks[msg.id]} target="_blank" rel="noreferrer">
                           📎 View Shared Link
                         </a>
                       </p>
