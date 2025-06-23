@@ -48,6 +48,7 @@ A full-stack web application that lets users write, store, and share time-locked
 ### 1. Clone the repo
 
 git clone https://github.com/PrathamSingh31/digital-time-capsule.git
+
 cd digital-time-capsule
 
 ### 2. Backend Setup (Spring Boot)
@@ -75,11 +76,17 @@ Secured backend routes
 ### 📁 Folder Structure
 
 digital-time-capsule/
+
 ├── backend/
+
 │   └── src/main/java/com/capsule/...
+
 ├── frontend/
+
 │   └── src/components/
+
 │       └── Dashboard.jsx, Create.jsx, etc.
+
 ├── README.md
 
 
