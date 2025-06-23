@@ -82,6 +82,7 @@ digital-time-capsule/
 │       └── Dashboard.jsx, Create.jsx, etc.
 ├── README.md
 
+
 ### 📄 License
 MIT License © [Pratham Singh]
 
