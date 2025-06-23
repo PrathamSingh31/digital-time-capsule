@@ -100,6 +100,28 @@ export default function Dashboard() {
     }
   };
 
+
+
+const handleExportPDF = async (messageId) => {
+  try {
+    const response = await axiosPrivate.get(`/api/user/messages/${messageId}/export/pdf`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `message_${messageId}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to export PDF:', error);
+    alert('Error exporting message as PDF');
+  }
+};
+
+
   useEffect(() => {
     fetchMessages();
   }, []);
@@ -247,6 +269,14 @@ export default function Dashboard() {
                       >
                         🔗 Share
                       </button>
+
+                       {/* ✅ NEW EXPORT PDF BUTTON */}
+                        <button
+                          onClick={() => handleExportPDF(msg.id)}
+                          className={styles.exportButton}
+                        >
+                          🧾 Export PDF
+                        </button>
                     </div>
 
                     {sharedLinks[msg.id] && (

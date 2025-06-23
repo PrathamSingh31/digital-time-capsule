@@ -1,11 +1,10 @@
 .navbar {
-  background-color: #111827; /* Darker and more modern */
-  color: white;
-  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 16px 24px;
+  background-color: #1e3a8a;
+  color: white;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -13,79 +12,33 @@
 
 .logo {
   font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #60a5fa; /* Blue-400 */
+  font-weight: bold;
 }
 
 .navLinks {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  list-style: none;
+  gap: 20px;
 }
 
-.link {
-  color: #e5e7eb; /* Tailwind's gray-200 */
+.navLinks li a {
+  color: white;
   text-decoration: none;
-  font-size: 1rem;
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-.link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: -4px;
-  width: 0;
-  height: 2px;
-  background-color: #3b82f6;
-  transition: width 0.3s ease;
-}
-
-.link:hover {
-  color: #ffffff;
-}
-
-.link:hover::after {
-  width: 100%;
-}
-
-.logoutBtn {
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
   font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.25s ease, transform 0.2s ease;
 }
 
-.logoutBtn:hover {
-  background-color: #dc2626;
-  transform: scale(1.05);
-}
-
-/* Optional Responsive Layout Tweaks */
-.navLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
+.active {
+  text-decoration: underline;
 }
 
 .logoutBtn {
-  background-color: #e74c3c;
-  border: none;
-  padding: 6px 12px;
+  background: none;
+  border: 1px solid white;
   color: white;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
 }
-
 .logoutBtn:hover {
-  background-color: #c0392b;
+  background-color: rgba(255, 255, 255, 0.2);
 }
-

@@ -1,86 +1,83 @@
 .profileContainer {
-  max-width: 500px;
+  max-width: 600px;
   margin: 40px auto;
-  padding: 24px;
-  background-color: #fdfdfd;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 28px;
+  background-color: #1c1c1c;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  color: #f0f0f0;
 }
 
 .heading {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: bold;
-  margin-bottom: 16px;
   text-align: center;
+  color: #00bcd4;
+  margin-bottom: 20px;
 }
 
 .detail {
-  font-size: 16px;
-  margin-bottom: 12px;
-  line-height: 1.5;
+  font-size: 17px;
+  margin-bottom: 14px;
+  line-height: 1.6;
+  color: #e0e0e0;
 }
 
 .status {
+  margin-top: 20px;
   text-align: center;
   font-style: italic;
-  margin-top: 50px;
+  color: #aaa;
+}
+
+.toggleBtn,
+.testButton,
+.toggleButton {
+  padding: 10px 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 12px;
 }
 
 .toggleBtn {
-  padding: 8px 16px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  margin-top: 12px;
-  cursor: pointer;
+  background-color: #1e88e5;
+  color: #fff;
 }
-
 .toggleBtn:hover {
-  background-color: #0056b3;
-}
-
-.status {
-  margin-top: 10px;
-  color: #555;
-  font-style: italic;
+  background-color: #1565c0;
 }
 
 .testButton {
-  background-color: #007bff;
+  background-color: #6f42c1;
   color: white;
-  border: none;
-  padding: 10px 14px;
-  margin-top: 16px;
-  font-size: 1rem;
-  border-radius: 6px;
-  cursor: pointer;
 }
-
+.testButton:hover {
+  background-color: #5936a1;
+}
 .testButton:disabled {
-  background-color: #6c757d;
+  background-color: #555;
   cursor: not-allowed;
 }
 
-.message {
-  margin-top: 12px;
-  font-weight: bold;
+.toggleButton {
+  background-color: #28a745;
+  color: white;
+  margin-left: 12px;
+}
+.toggleButton:hover {
+  background-color: #1f7a36;
 }
 
 .reminderToggle {
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
-.toggleButton {
-  padding: 8px 14px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 12px;
-}
-
-.toggleButton:hover {
-  background-color: #218838;
+.message {
+  margin-top: 16px;
+  font-weight: bold;
+  color: #90caf9;
 }

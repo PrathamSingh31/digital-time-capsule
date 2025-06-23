@@ -5,6 +5,9 @@ import styles from './Login.module.css';
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -16,6 +19,8 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const response = await axiosAuth.post('/login', formData);
       const { token, username } = response.data;
@@ -25,7 +30,9 @@ export default function Login() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed. Please check your credentials.');
+      setError('Login failed. Please check your username or password.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,6 +40,7 @@ export default function Login() {
     <div className={styles.loginContainer}>
       <h2 className={styles.heading}>🔐 Login</h2>
       <form onSubmit={handleSubmit} className={styles.form}>
+        {error && <div className={styles.error}>{error}</div>}
         <input
           type="text"
           name="username"
@@ -42,17 +50,33 @@ export default function Login() {
           required
           className={styles.input}
         />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-          className={styles.input}
-        />
-        <button type="submit" className={styles.button}>
-          Login
+
+        <div className={styles.passwordWrapper}>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className={`${styles.input}`}
+          />
+          <button
+            type="button"
+            className={styles.togglePasswordBtn}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? 'Hide' : '👁 Show'}
+          </button>
+        </div>
+
+
+        <button
+          type="submit"
+          className={styles.button}
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </button>
 
         <div className={styles.links}>

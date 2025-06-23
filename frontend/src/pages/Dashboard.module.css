@@ -1,24 +1,26 @@
 .container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 40px auto;
-  padding: 24px;
-  background-color: #f9fafb;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  background-color: #121212;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
 .heading {
-  font-size: 1.8rem;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 24px;
-  color: #1e3a8a;
+  margin-bottom: 32px;
+  color: #f43f5e; /* rose red */
 }
 
 .empty {
   text-align: center;
-  color: #6b7280;
+  color: #9ca3af;
   font-style: italic;
+  font-size: 1.1rem;
+  padding: 20px;
 }
 
 .messageList {
@@ -28,140 +30,190 @@
 }
 
 .messageCard {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  background: #1f1f1f;
+  border: 1px solid #2c2c2c;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.messageCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
 }
 
 .title {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
+  color: #f8fafc;
+  margin-bottom: 12px;
 }
 
 .content {
-  font-size: 1rem;
-  color: #374151;
-  margin-bottom: 8px;
+  font-size: 1.05rem;
+  color: #e5e7eb;
+  margin-bottom: 10px;
+  line-height: 1.6;
 }
 
 .date {
   font-size: 0.95rem;
-  color: #6b7280;
-  margin-bottom: 12px;
+  color: #cbd5e1;
+  margin-bottom: 14px;
 }
 
 .input,
 .textarea {
   width: 100%;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #374151;
+  border-radius: 8px;
   font-size: 1rem;
+  background-color: #2a2a2a;
+  color: #f8fafc;
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
+  margin-top: 10px;
 }
 
 .editButton,
 .deleteButton,
-.saveButton {
-  padding: 8px 16px;
+.saveButton,
+.shareButton,
+.revealButton {
+  padding: 10px 18px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
+/* Buttons */
 .editButton {
   background-color: #3b82f6;
   color: white;
 }
 .editButton:hover {
   background-color: #2563eb;
+  transform: scale(1.03);
 }
 
 .deleteButton {
-  background-color: #ef4444;
+  background-color: #f43f5e;
   color: white;
 }
 .deleteButton:hover {
   background-color: #dc2626;
+  transform: scale(1.03);
 }
 
 .saveButton {
-  background-color: #10b981;
+  background-color: #f43f5e;
   color: white;
 }
 .saveButton:hover {
-  background-color: #059669;
+  background-color: #e11d48;
+  transform: scale(1.03);
 }
 
-
 .shareButton {
-  background-color: #4caf50;
+  background-color: #6366f1;
+  color: black;
+}
+.shareButton:hover {
+  background-color: #4f46e5;
+  transform: scale(1.03);
+}
+
+.revealButton {
+  background-color: #16a34a;
   color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 8px;
+}
+.revealButton:hover {
+  background-color: #15803d;
+  transform: scale(1.03);
 }
 
 .sharedLink {
-  margin-top: 6px;
+  margin-top: 10px;
   font-size: 0.9rem;
-  color: #1e88e5;
+  color: #f43f5e;
+  word-break: break-word;
 }
 
 .image {
   max-width: 100%;
   height: auto;
-  margin-top: 10px;
-  border-radius: 8px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #374151;
 }
 
 .previewVideo {
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
   height: auto;
-  margin-top: 10px;
-  border-radius: 8px;
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 1px solid #374151;
 }
 
 .lockedMessage {
   text-align: center;
-  padding: 10px;
-  border: 1px dashed #bbb;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  margin-bottom: 10px;
+  padding: 16px;
+  border: 2px dashed #555;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  margin-bottom: 16px;
 }
 
 .lockedText {
   font-style: italic;
-  color: #666;
+  color: #94a3b8;
+  font-size: 1rem;
 }
 
-.revealButton {
-  margin-top: 8px;
-  padding: 6px 12px;
-  background-color: #28a745;
+/* Responsive Layout */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .input,
+  .textarea {
+    font-size: 0.95rem;
+  }
+}
+
+
+.exportButton {
+  background-color: #f97316; /* orange shade */
   color: white;
   border: none;
+  padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 0.9rem;
 }
-
-.revealButton:hover {
-  background-color: #218838;
+.exportButton:hover {
+  background-color: #ea580c;
 }
-

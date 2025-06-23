@@ -1,47 +1,26 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import styles from "./Navbar.module.css";
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import styles from './Navbar.module.css';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const isAuthenticated = !!localStorage.getItem("token");
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("jwt"); // or your auth method
     navigate("/login");
   };
 
   return (
     <nav className={styles.navbar}>
-      <h1 className={styles.logo}>🎁 Digital Time Capsule</h1>
-
-      <div className={styles.navLinks}>
-        {isAuthenticated ? (
-          <>
-            {/* Main Navigation */}
-            <Link to="/dashboard" className={styles.link}>Dashboard</Link>
-            <Link to="/create" className={styles.link}>Create</Link>
-            <Link to="/profile" className={styles.link}>Profile</Link>
-
-            {/* Tools Section */}
-            <Link to="/import" className={styles.link}>Import</Link>
-            <Link to="/export" className={styles.link}>Export</Link>
-            <Link to="/scheduled" className={styles.link}>Scheduled</Link>
-
-            {/* Future: Shareable Messages Page (optional) */}
-            {/* <Link to="/shared-links" className={styles.link}>Shared</Link> */}
-
-            <button onClick={handleLogout} className={styles.logoutBtn}>
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" className={styles.link}>Login</Link>
-            <Link to="/register" className={styles.link}>Register</Link>
-          </>
-        )}
-      </div>
+      <h1 className={styles.logo}>⏳ Digital Capsule</h1>
+      <ul className={styles.navLinks}>
+        <li><NavLink to="/dashboard" activeClassName={styles.active}>Dashboard</NavLink></li>
+        <li><NavLink to="/create" activeClassName={styles.active}>Create</NavLink></li>
+        <li><NavLink to="/import" activeClassName={styles.active}>Import</NavLink></li>
+        <li><NavLink to="/export" activeClassName={styles.active}>Export</NavLink></li>
+        <li><NavLink to="/profile" activeClassName={styles.active}>Profile</NavLink></li>
+        <li><button onClick={handleLogout} className={styles.logoutBtn}>Logout</button></li>
+      </ul>
     </nav>
   );
 }
