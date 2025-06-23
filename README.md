@@ -20,8 +20,17 @@ A full-stack web application that lets users write, store, and share time-locked
 - 🔐 Messages remain **hidden until unlocked**
 - 🌈 **Responsive UI** with dark theme and modern design
 - 🔔 Toast alerts, loading states, and user-friendly interactions
-
----
+-  ## Export Individual Message as PDF
+  - Export a single time capsule message as a PDF file
+- Includes:
+  - Message title, content, delivery and unlock date
+  - Embedded image (if uploaded)
+  - Clickable video link (if attached)
+- PDF downloads with filename format: `message_{id}.pdf`
+ 
+**Video Links:**
+- Videos are served securely via:  
+  `http://localhost:8080/api/user/messages/video/{filename}`
 
 ## 🛠️ Tech Stack
 
